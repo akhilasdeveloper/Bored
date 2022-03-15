@@ -12,6 +12,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -21,14 +23,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.akhilasdeveloper.bored.ui.theme.*
+import kotlin.math.roundToInt
 
 @ExperimentalAnimationApi
 class MainActivity : ComponentActivity() {
@@ -92,17 +98,36 @@ fun Greeting(
     price: Float,
     link: String
 ) {
-    var buttonIsVisible by remember {
-        mutableStateOf(true)
-    }
     var moreIsVisible by remember {
         mutableStateOf(false)
     }
 
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(20.dp)
+            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consumeAllChanges()
+
+                    val (x,y) = dragAmount
+                    when {
+                        x > 0 ->{ /* right */ }
+                        x < 0 ->{ /* left */ }
+                    }
+                    when {
+                        y > 0 -> { /* down */ }
+                        y < 0 -> { /* up */ }
+                    }
+
+                    offsetX += dragAmount.x
+                    offsetY += dragAmount.y
+                }
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -113,8 +138,14 @@ fun Greeting(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = {
+//                            buttonIsVisible = true
+                            moreIsVisible = !moreIsVisible
+                        }
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(
                     modifier = Modifier
@@ -126,7 +157,7 @@ fun Greeting(
                     CardPrimaryText(activityName = activityName, textColor = Color.White)
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                AnimatedVisibility(
+                /*AnimatedVisibility(
                     visible = buttonIsVisible,
                     enter = expandVertically(animationSpec = tween(durationMillis = 500)),
                     exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
@@ -144,11 +175,12 @@ fun Greeting(
                             CardSecondText(text = "More", textColor = Color.White)
                         }
                     }
-                }
+                }*/
                 AnimatedVisibility(
                     visible = moreIsVisible,
                     enter = expandVertically(animationSpec = tween(durationMillis = 500)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
+                    modifier = Modifier.background(buttonBlack)
                 ) {
                     MoreContent(
                         accessibility,
