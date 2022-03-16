@@ -1,7 +1,6 @@
 package com.akhilasdeveloper.bored
 
 import android.os.Bundle
-import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -23,12 +22,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -103,10 +99,27 @@ fun Greeting(
     price: Float,
     link: String
 ) {
+    var leftTrans by remember { mutableStateOf(Color.Transparent) }
+    var rightTrans by remember { mutableStateOf(Color.Transparent) }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
+        Row(Modifier.fillMaxSize()) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .background(leftTrans)
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .background(rightTrans)
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -147,7 +160,13 @@ fun Greeting(
             type = type,
             participants = participants,
             price = price,
-            link = link
+            link = link,
+            leftTrans = {
+                leftTrans = it
+            },
+            rightTrans = {
+                rightTrans = it
+            }
         )
     }
 }
@@ -160,7 +179,9 @@ fun CardView(
     type: String,
     participants: Int,
     price: Float,
-    link: String
+    link: String,
+    rightTrans: (color: Color) -> Unit,
+    leftTrans: (color: Color) -> Unit
 ) {
     var moreIsVisible by remember {
         mutableStateOf(false)
@@ -213,8 +234,24 @@ fun CardView(
                     offsetX += dragAmount.x * scale
                     if (offsetY + (dragAmount.y * scale) >= 0)
                         offsetY += dragAmount.y * scale
-                    if (offsetX >= 200 || offsetX <= -200)
+                    if (offsetX >= 200 || offsetX <= -200 || offsetY >= 200) {
                         scale = .3f
+
+                        if (offsetX >= 200)
+                            rightTrans(transDark)
+                        if (offsetX <= -200)
+                            leftTrans(transDark)
+
+                        if(offsetY >= 200 && offsetX >0)
+                            rightTrans(transDark)
+                        if(offsetY >= 200 && offsetX <0)
+                            leftTrans(transDark)
+
+                    } else {
+                        scale = 1f
+                        rightTrans(Color.Transparent)
+                        leftTrans(Color.Transparent)
+                    }
 
                 }
             }

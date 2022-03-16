@@ -14,3 +14,5 @@ val buttonGreen = Color(0xFFDAF3FF)
 
 val textOrange = Color(0xFFC25C5C)
 val textGreen = Color(0xFF5088A3)
+
+val transDark = Color(0xFF929292)
