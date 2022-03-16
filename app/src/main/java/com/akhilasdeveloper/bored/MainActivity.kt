@@ -1,14 +1,12 @@
 package com.akhilasdeveloper.bored
 
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
@@ -21,10 +19,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +39,7 @@ import com.akhilasdeveloper.bored.ui.theme.*
 import kotlin.math.roundToInt
 
 @ExperimentalAnimationApi
+@ExperimentalComposeUiApi
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +62,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Preview(showBackground = true)
 @Composable
@@ -87,6 +91,7 @@ fun PreviewMoreContent() {
     )
 }
 
+@ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
 fun Greeting(
@@ -98,102 +103,159 @@ fun Greeting(
     price: Float,
     link: String
 ) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                Modifier
+                    .weight(1f)
+                    .background(buttonOrange),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(Modifier.padding(10.dp))
+                {
+                    CardSecondText(text = "Pass", textColor = textOrange)
+                }
+            }
+
+            Box(
+                Modifier
+                    .weight(1f)
+                    .background(buttonGreen),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(Modifier.padding(10.dp))
+                {
+                    CardSecondText(text = "Add", textColor = textGreen)
+                }
+            }
+        }
+    }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CardView(
+            activityName = activityName,
+            accessibility = accessibility,
+            type = type,
+            participants = participants,
+            price = price,
+            link = link
+        )
+    }
+}
+
+@ExperimentalAnimationApi
+@Composable
+fun CardView(
+    activityName: String,
+    accessibility: Float,
+    type: String,
+    participants: Int,
+    price: Float,
+    link: String
+) {
     var moreIsVisible by remember {
         mutableStateOf(false)
     }
+    var isAnimate by remember { mutableStateOf(false) }
 
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
+    var scale by remember { mutableStateOf(1f) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp)
-            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+    val offsetXAnim by animateFloatAsState(targetValue = offsetX)
+    val offsetYAnim by animateFloatAsState(targetValue = offsetY)
+    val scaleAnim by animateFloatAsState(targetValue = scale)
+    Card(
+        shape = RoundedCornerShape(15.dp),
+        backgroundColor = cardRose,
+        elevation = 5.dp,
+        modifier = Modifier
+            .offset {
+                if (isAnimate) IntOffset(offsetXAnim.roundToInt(), offsetYAnim.roundToInt()) else
+                    IntOffset(offsetX.roundToInt(), offsetY.roundToInt())
+            }
+            .scale(scaleAnim)
             .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
+                detectDragGestures(onDragEnd = {
+                    offsetX = 0f
+                    offsetY = 0f
+                    scale = 1f
+                    isAnimate = true
+                }) { change, dragAmount ->
+
                     change.consumeAllChanges()
 
-                    val (x,y) = dragAmount
+                    isAnimate = false
+
+                    val (x, y) = dragAmount
                     when {
-                        x > 0 ->{ /* right */ }
-                        x < 0 ->{ /* left */ }
+                        x > 0 -> { /* right */
+                        }
+                        x < 0 -> { /* left */
+                        }
                     }
                     when {
-                        y > 0 -> { /* down */ }
-                        y < 0 -> { /* up */ }
+                        y > 0 -> { /* down */
+                        }
+                        y < 0 -> { /* up */
+                        }
                     }
 
-                    offsetX += dragAmount.x
-                    offsetY += dragAmount.y
+                    offsetX += dragAmount.x * scale
+                    if (offsetY + (dragAmount.y * scale) >= 0)
+                        offsetY += dragAmount.y * scale
+                    if (offsetX >= 200 || offsetX <= -200)
+                        scale = .3f
+
                 }
-            },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            }
     ) {
-        Card(
-            shape = RoundedCornerShape(15.dp),
-            backgroundColor = cardRose,
-            elevation = 5.dp
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick = {
+                        moreIsVisible = !moreIsVisible
+                    }
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(
-                        onClick = {
-//                            buttonIsVisible = true
-                            moreIsVisible = !moreIsVisible
-                        }
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .aspectRatio(1f)
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CardPrimaryText(activityName = activityName, textColor = Color.White)
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-                /*AnimatedVisibility(
-                    visible = buttonIsVisible,
-                    enter = expandVertically(animationSpec = tween(durationMillis = 500)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
-                ) {
-                    Button(
-                        onClick = {
-                            buttonIsVisible = false
-                            moreIsVisible = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = buttonBlack)
-                    ) {
-                        Box(modifier = Modifier.padding(10.dp)) {
-                            CardSecondText(text = "More", textColor = Color.White)
-                        }
-                    }
-                }*/
-                AnimatedVisibility(
-                    visible = moreIsVisible,
-                    enter = expandVertically(animationSpec = tween(durationMillis = 500)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
-                    modifier = Modifier.background(buttonBlack)
-                ) {
-                    MoreContent(
-                        accessibility,
-                        type,
-                        participants,
-                        price,
-                        link
-                    )
-                }
-
+                CardPrimaryText(activityName = activityName, textColor = Color.White)
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            AnimatedVisibility(
+                visible = moreIsVisible,
+                enter = expandVertically(animationSpec = tween(durationMillis = 500)),
+                exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
+                modifier = Modifier.background(buttonBlack)
+            ) {
+                MoreContent(
+                    accessibility,
+                    type,
+                    participants,
+                    price,
+                    link
+                )
             }
 
         }
+
     }
 }
 
