@@ -106,21 +106,6 @@ fun Greeting(
     val leftTransAnim by animateColorAsState(targetValue = leftTrans)
     val rightTransAnim by animateColorAsState(targetValue = rightTrans)
 
-    var isAnimate by remember { mutableStateOf(false) }
-
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
-    var scale by remember { mutableStateOf(1f) }
-
-    val offsetXAnim by animateFloatAsState(targetValue = offsetX)
-    val offsetYAnim by animateFloatAsState(targetValue = offsetY)
-    val scaleAnim by animateFloatAsState(targetValue = scale)
-
-    val configuration = LocalConfiguration.current
-    val screenDensity = configuration.densityDpi / 160f
-    val screenHeightPx = configuration.screenHeightDp.toFloat() * screenDensity
-    val screenWidthPx = configuration.screenWidthDp.toFloat() * screenDensity
-
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
@@ -178,81 +163,15 @@ fun Greeting(
     ) {
         CardView(
             cardDao = cardDao,
-            modifier = Modifier
-                .offset {
-                    if (isAnimate) IntOffset(
-                        offsetXAnim.roundToInt(),
-                        offsetYAnim.roundToInt()
-                    ) else
-                        IntOffset(offsetX.roundToInt(), offsetY.roundToInt())
-                }
-                .scale(scaleAnim)
-                .pointerInput(Unit) {
-                    detectDragGestures(onDragEnd = {
+            leftTrans = {
+                leftTrans = it
+            },
+            rightTrans = {
+                rightTrans = it
+            },
+            onComplete = {
 
-                        if (scale == 1f) {
-                            offsetX = 0f
-                            offsetY = 0f
-                        } else {
-                            scale = 0f
-                        }
-                        isAnimate = true
-                        rightTrans = buttonGreenTransparent
-                        leftTrans = buttonOrangeTransparent
-
-                        if (offsetX >= 200) {
-                            val x = screenWidthPx / 4
-                            val y = screenHeightPx / 2
-                            offsetX = x
-                            offsetY = y
-                        }
-
-                        if (offsetX <= -200) {
-                            val x = -screenWidthPx / 4
-                            val y = screenHeightPx / 2
-                            offsetX = x
-                            offsetY = y
-                        }
-
-                    }) { change, dragAmount ->
-
-                        change.consumeAllChanges()
-
-                        isAnimate = false
-
-                        val (x, y) = dragAmount
-                        when {
-                            x > 0 -> { /* right */
-                            }
-                            x < 0 -> { /* left */
-                            }
-                        }
-                        when {
-                            y > 0 -> { /* down */
-                            }
-                            y < 0 -> { /* up */
-                            }
-                        }
-
-                        offsetX += dragAmount.x * scale
-                        if (offsetY + (dragAmount.y * scale) >= 0)
-                            offsetY += dragAmount.y * scale
-                        if (offsetX >= 200 || offsetX <= -200) {
-                            scale = .3f
-
-                            if (offsetX >= 200)
-                                rightTrans = buttonGreenLite
-                            if (offsetX <= -200)
-                                leftTrans = buttonOrangeLite
-
-                        } else {
-                            scale = 1f
-                            rightTrans = buttonGreenTransparent
-                            leftTrans = buttonOrangeTransparent
-                        }
-
-                    }
-                }
+            }
         )
     }
 }
@@ -261,18 +180,118 @@ fun Greeting(
 @Composable
 fun CardView(
     cardDao: CardDao,
-    modifier: Modifier
+    rightTrans: (color: Color) -> Unit,
+    leftTrans: (color: Color) -> Unit,
+    onComplete: (isPass:Boolean) -> Unit
 ) {
     var moreIsVisible by remember {
         mutableStateOf(false)
     }
+    var isAnimate by remember { mutableStateOf(false) }
 
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+    var scale by remember { mutableStateOf(1f) }
+
+    var isPassVal by remember { mutableStateOf(false) }
+
+    val offsetXAnim by animateFloatAsState(targetValue = offsetX)
+    val offsetYAnim by animateFloatAsState(targetValue = offsetY)
+    val scaleAnim by animateFloatAsState(targetValue = scale, finishedListener = {
+        if (it == 0f) {
+            offsetX = 0f
+            offsetY = 0f
+            onComplete(isPassVal)
+        }
+    })
+
+    val configuration = LocalConfiguration.current
+    val screenDensity = configuration.densityDpi / 160f
+    val screenHeightPx = configuration.screenHeightDp.toFloat() * screenDensity
+    val screenWidthPx = configuration.screenWidthDp.toFloat() * screenDensity
 
     Card(
         shape = RoundedCornerShape(15.dp),
         backgroundColor = cardRose,
         elevation = 5.dp,
-        modifier = modifier
+        modifier = Modifier
+            .offset {
+                if (isAnimate) IntOffset(offsetXAnim.roundToInt(), offsetYAnim.roundToInt()) else
+                    IntOffset(offsetX.roundToInt(), offsetY.roundToInt())
+            }
+            .scale(scaleAnim)
+            .pointerInput(Unit) {
+                detectDragGestures(onDragEnd = {
+
+                    isAnimate = true
+                    rightTrans(buttonGreenTransparent)
+                    leftTrans(buttonOrangeTransparent)
+
+                    if (offsetX >= 200) {
+                        val x = screenWidthPx / 4
+                        val y = screenHeightPx / 2
+                        offsetX = x
+                        offsetY = y
+                        isPassVal = false
+                    }
+
+                    if (offsetX <= -200) {
+                        val x = -screenWidthPx / 4
+                        val y = screenHeightPx / 2
+                        offsetX = x
+                        offsetY = y
+                        isPassVal = true
+                    }
+
+                    if (scale == 1f) {
+                        offsetX = 0f
+                        offsetY = 0f
+                    } else {
+                        scale = 0f
+                    }
+
+                }) { change, dragAmount ->
+
+                    change.consumeAllChanges()
+
+                    isAnimate = false
+
+                    val (x, y) = dragAmount
+                    when {
+                        x > 0 -> { /* right */
+                        }
+                        x < 0 -> { /* left */
+                        }
+                    }
+                    when {
+                        y > 0 -> { /* down */
+                        }
+                        y < 0 -> { /* up */
+                        }
+                    }
+
+                    if (scale != 0f) {
+                        offsetX += dragAmount.x * scale
+                        if (offsetY + (dragAmount.y * scale) >= 0)
+                            offsetY += dragAmount.y * scale
+
+
+                        if (offsetX >= 200 || offsetX <= -200) {
+                            scale = .3f
+
+                            if (offsetX >= 200)
+                                rightTrans(buttonGreenLite)
+                            if (offsetX <= -200)
+                                leftTrans(buttonOrangeLite)
+
+                        } else {
+                            scale = 1f
+                            rightTrans(buttonGreenTransparent)
+                            leftTrans(buttonOrangeTransparent)
+                        }
+                    }
+                }
+            }
     ) {
         Column(
             modifier = Modifier
