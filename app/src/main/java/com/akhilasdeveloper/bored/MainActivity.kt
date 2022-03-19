@@ -45,16 +45,7 @@ class MainActivity : ComponentActivity() {
             BoredTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Greeting(
-                        cardDao = CardDao(
-                            activityName = "Contribute code or a monetary donation to an open-source software project",
-                            accessibility = 0f,
-                            type = "charity",
-                            participants = 1,
-                            price = 0.1f,
-                            link = "https://github.com/explore",
-                        )
-                    )
+                    Greeting()
                 }
             }
         }
@@ -66,16 +57,7 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewGreetings() {
-    Greeting(
-        cardDao = CardDao(
-            activityName = "Contribute code or a monetary donation to an open-source software project",
-            accessibility = 0f,
-            type = "charity",
-            participants = 1,
-            price = 0.1f,
-            link = "https://github.com/explore",
-        )
-    )
+    Greeting()
 }
 
 @ExperimentalAnimationApi
@@ -97,9 +79,7 @@ fun PreviewMoreContent() {
 @ExperimentalComposeUiApi
 @ExperimentalAnimationApi
 @Composable
-fun Greeting(
-    cardDao: CardDao
-) {
+fun Greeting() {
     var leftTrans by remember { mutableStateOf(Color.Transparent) }
     var rightTrans by remember { mutableStateOf(Color.Transparent) }
 
@@ -162,15 +142,11 @@ fun Greeting(
         contentAlignment = Alignment.Center
     ) {
         CardView(
-            cardDao = cardDao,
             leftTrans = {
                 leftTrans = it
             },
             rightTrans = {
                 rightTrans = it
-            },
-            onComplete = {
-
             }
         )
     }
@@ -179,14 +155,23 @@ fun Greeting(
 @ExperimentalAnimationApi
 @Composable
 fun CardView(
-    cardDao: CardDao,
     rightTrans: (color: Color) -> Unit,
-    leftTrans: (color: Color) -> Unit,
-    onComplete: (isPass:Boolean) -> Unit
+    leftTrans: (color: Color) -> Unit
 ) {
-    var moreIsVisible by remember {
-        mutableStateOf(false)
+    var moreIsVisible by remember { mutableStateOf(false) }
+    var cardDao by remember {
+        mutableStateOf(
+            CardDao(
+                activityName = "Contribute code or a monetary donation to an open-source software project",
+                accessibility = 0f,
+                type = "charity",
+                participants = 1,
+                price = 0.1f,
+                link = "https://github.com/explore",
+            )
+        )
     }
+
     var isAnimate by remember { mutableStateOf(false) }
 
     var offsetX by remember { mutableStateOf(0f) }
@@ -195,13 +180,22 @@ fun CardView(
 
     var isPassVal by remember { mutableStateOf(false) }
 
-    val offsetXAnim by animateFloatAsState(targetValue = offsetX)
+    var isFinished by remember { mutableStateOf(false) }
+
+    val offsetXAnim by animateFloatAsState(targetValue = offsetX, finishedListener = {
+        if (isFinished){
+            isFinished = false
+            scale = 1f
+//            onComplete(isPassVal)
+        }
+    })
+
     val offsetYAnim by animateFloatAsState(targetValue = offsetY)
     val scaleAnim by animateFloatAsState(targetValue = scale, finishedListener = {
         if (it == 0f) {
+            isAnimate = false
             offsetX = 0f
             offsetY = 0f
-            onComplete(isPassVal)
         }
     })
 
@@ -233,6 +227,7 @@ fun CardView(
                         offsetX = x
                         offsetY = y
                         isPassVal = false
+                        isFinished = true
                     }
 
                     if (offsetX <= -200) {
@@ -241,6 +236,7 @@ fun CardView(
                         offsetX = x
                         offsetY = y
                         isPassVal = true
+                        isFinished = true
                     }
 
                     if (scale == 1f) {
