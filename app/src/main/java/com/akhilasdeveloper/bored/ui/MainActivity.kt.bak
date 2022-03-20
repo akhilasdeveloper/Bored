@@ -9,10 +9,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -21,9 +21,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -86,6 +83,21 @@ fun Greeting() {
     val leftTransAnim by animateColorAsState(targetValue = leftTrans)
     val rightTransAnim by animateColorAsState(targetValue = rightTrans)
 
+    val cardDao by remember {
+        mutableStateOf(
+            CardDao(
+                activityName = "Contribute code or a monetary donation to an open-source software project",
+                accessibility = 0f,
+                type = "charity",
+                participants = 1,
+                price = 0.1f,
+                link = "https://github.com/explore",
+            )
+        )
+    }
+
+    val cards = remember { mutableStateListOf<CardDao>(cardDao) }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
@@ -141,14 +153,22 @@ fun Greeting() {
             .padding(20.dp),
         contentAlignment = Alignment.Center
     ) {
-        CardView(
-            leftTrans = {
-                leftTrans = it
-            },
-            rightTrans = {
-                rightTrans = it
+        LazyColumn {
+            itemsIndexed(cards) { index, item ->
+                CardView(
+                    leftTrans = {
+                        leftTrans = it
+                    },
+                    rightTrans = {
+                        rightTrans = it
+                    }, cardDao = item,
+                    onComplete = {
+                        cards.add(cardDao.copy(activityName = "Tests"))
+                    }
+                )
+
             }
-        )
+        }
     }
 }
 
@@ -156,21 +176,11 @@ fun Greeting() {
 @Composable
 fun CardView(
     rightTrans: (color: Color) -> Unit,
-    leftTrans: (color: Color) -> Unit
+    leftTrans: (color: Color) -> Unit,
+    cardDao: CardDao,
+    onComplete: (isPassVal: Boolean) -> Unit
 ) {
     var moreIsVisible by remember { mutableStateOf(false) }
-    var cardDao by remember {
-        mutableStateOf(
-            CardDao(
-                activityName = "Contribute code or a monetary donation to an open-source software project",
-                accessibility = 0f,
-                type = "charity",
-                participants = 1,
-                price = 0.1f,
-                link = "https://github.com/explore",
-            )
-        )
-    }
 
     var isAnimate by remember { mutableStateOf(false) }
 
@@ -182,20 +192,14 @@ fun CardView(
 
     var isFinished by remember { mutableStateOf(false) }
 
-    val offsetXAnim by animateFloatAsState(targetValue = offsetX, finishedListener = {
-        if (isFinished){
-            isFinished = false
-            scale = 1f
-//            onComplete(isPassVal)
-        }
-    })
+    val offsetXAnim by animateFloatAsState(targetValue = offsetX)
 
     val offsetYAnim by animateFloatAsState(targetValue = offsetY)
     val scaleAnim by animateFloatAsState(targetValue = scale, finishedListener = {
-        if (it == 0f) {
-            isAnimate = false
+        if (isFinished) {
             offsetX = 0f
             offsetY = 0f
+            onComplete(isPassVal)
         }
     })
 
@@ -239,7 +243,7 @@ fun CardView(
                         isFinished = true
                     }
 
-                    if (scale == 1f) {
+                    if (!isFinished) {
                         offsetX = 0f
                         offsetY = 0f
                     } else {
@@ -252,21 +256,7 @@ fun CardView(
 
                     isAnimate = false
 
-                    val (x, y) = dragAmount
-                    when {
-                        x > 0 -> { /* right */
-                        }
-                        x < 0 -> { /* left */
-                        }
-                    }
-                    when {
-                        y > 0 -> { /* down */
-                        }
-                        y < 0 -> { /* up */
-                        }
-                    }
-
-                    if (scale != 0f) {
+                    if (!isFinished) {
                         offsetX += dragAmount.x * scale
                         if (offsetY + (dragAmount.y * scale) >= 0)
                             offsetY += dragAmount.y * scale
