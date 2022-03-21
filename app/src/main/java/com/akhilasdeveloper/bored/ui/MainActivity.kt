@@ -34,10 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
-import com.akhilasdeveloper.bored.ui.theme.buttonGreen
-import com.akhilasdeveloper.bored.ui.theme.buttonOrange
-import com.akhilasdeveloper.bored.ui.theme.textGreen
-import com.akhilasdeveloper.bored.ui.theme.textOrange
+import com.akhilasdeveloper.bored.ui.theme.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
@@ -188,7 +185,8 @@ fun CardSecondText(text: String?, textColor: Color, modifier: Modifier = Modifie
     ) {
         text?.let {
             Text(
-                modifier = modifier.padding(10.dp),
+//                modifier = modifier.padding(10.dp),
+                modifier = modifier,
                 text = text,
                 style = TextStyle(
                     color = textColor,
@@ -233,7 +231,7 @@ fun LinearProgressBar(
     fontSize: TextUnit = 16.sp,
     color: Color = textOrange,
     strokeWidth: Dp = 8.dp,
-    size: Dp = 50.dp,
+    size: Dp = 80.dp,
     animationDuration: Int = 1000,
     animationDelay: Int = 0
 ){
@@ -248,31 +246,37 @@ fun LinearProgressBar(
             delayMillis = animationDelay
         )
     )
-    
+
     LaunchedEffect(key1 = true ){
         animationPlayed = true
     }
 
     Box {
+
         CardSecondText(
             text = "${(curPercentage.value * 100).roundToInt()} %",
             textColor = Color.White
         )
-        Canvas(modifier = Modifier.size(width = size, height = strokeWidth).padding(start = 20.dp)){
-            drawLine(
-                color = Color.White,
-                strokeWidth = strokeWidth.toPx(),
-                cap = StrokeCap.Round,
-                start = Offset(0f,0f),
-                end = Offset(size.toPx(),0f)
-            )
-            drawLine(
-                color = color,
-                strokeWidth = strokeWidth.toPx(),
-                cap = StrokeCap.Round,
-                start = Offset(0f,0f),
-                end = Offset(curPercentage.value * size.toPx(),0f)
-            )
+
+        Box(contentAlignment = Alignment.Center) {
+            Canvas(modifier = Modifier
+                .size(width = size, height = strokeWidth)){
+                drawLine(
+                    color = Color.White,
+                    strokeWidth = strokeWidth.toPx(),
+                    cap = StrokeCap.Round,
+                    start = Offset(0f,0f),
+                    end = Offset(size.toPx(),0f)
+                )
+                drawLine(
+                    color = color,
+                    strokeWidth = strokeWidth.toPx(),
+                    cap = StrokeCap.Round,
+                    start = Offset(0f,0f),
+                    end = Offset(curPercentage.value * size.toPx(),0f)
+                )
+            }
         }
     }
+
 }
