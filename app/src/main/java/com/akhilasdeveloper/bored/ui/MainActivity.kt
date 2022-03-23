@@ -4,11 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +36,7 @@ import com.akhilasdeveloper.bored.ui.theme.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 
+@ExperimentalAnimationApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -54,10 +53,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun Greeting(viewModel: MainViewModel = viewModel()) {
 
     val cardData = viewModel.boredActivityState
+
+    var color by remember { mutableStateOf(Color.White) }
+    var text by remember { mutableStateOf("") }
+
+    val colorAnim = animateColorAsState(targetValue = color)
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -105,22 +110,29 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
         contentAlignment = Alignment.Center
     ) {
         cardData.value?.let {
+            color = it.cardColor.colorCardBg
+            text = it.activityName.toString()
             CardView(
-                cardDao = it
+                cardDao = it,
+                colorAnim = colorAnim,
+                text = text
             )
         }
     }
 }
 
+@ExperimentalAnimationApi
 @Composable
 fun CardView(
-    cardDao: CardDao
+    cardDao: CardDao,
+    colorAnim: State<Color>,
+    text: String
 ) {
     var moreIsVisible by remember { mutableStateOf(false) }
 
     Card(
         shape = RoundedCornerShape(15.dp),
-        backgroundColor = cardDao.cardColor.colorCardBg,
+        backgroundColor = colorAnim.value,
         elevation = 5.dp,
         modifier = Modifier
     ) {
@@ -142,7 +154,9 @@ fun CardView(
                 contentAlignment = Alignment.Center
             ) {
                 cardDao.activityName?.let {
-                    CardPrimaryText(activityName = it, textColor = cardDao.cardColor.colorCardFg)
+                    AnimatedContent(targetState = text) { targetCount ->
+                        CardPrimaryText(activityName = targetCount, textColor = cardDao.cardColor.colorCardFg)
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -153,7 +167,8 @@ fun CardView(
                 modifier = Modifier.background(cardDao.cardColor.colorCardSecondBg)
             ) {
                 MoreContent(
-                    cardDao = cardDao
+                    cardDao = cardDao,
+                    colorAnim = colorAnim
                 )
             }
 
@@ -185,8 +200,7 @@ fun CardSecondText(text: String?, textColor: Color, modifier: Modifier = Modifie
     ) {
         text?.let {
             Text(
-//                modifier = modifier.padding(10.dp),
-                modifier = modifier,
+                modifier = modifier.padding(10.dp),
                 text = text,
                 style = TextStyle(
                     color = textColor,
@@ -201,8 +215,10 @@ fun CardSecondText(text: String?, textColor: Color, modifier: Modifier = Modifie
 
 @Composable
 fun MoreContent(
-    cardDao: CardDao
+    cardDao: CardDao,
+    colorAnim: State<Color>
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -210,17 +226,25 @@ fun MoreContent(
         horizontalAlignment = Alignment.Start,
     ) {
         CardSecondText(text = cardDao.link, textColor = cardDao.cardColor.colorCardSecondFg)
-        CardSecondText(text = cardDao.type, textColor = cardDao.cardColor.colorCardSecondFg)
+        CardSecondText(text = "Type : ${cardDao.type}", textColor = cardDao.cardColor.colorCardSecondFg)
         CardSecondText(
-            text = cardDao.participants.toString(),
+            text = "Participants : ${cardDao.participants}",
             textColor = cardDao.cardColor.colorCardSecondFg
         )
         Row(
             horizontalArrangement = Arrangement.SpaceAround,
             modifier = Modifier.fillMaxWidth()
         ) {
-            LinearProgressBar(percentage = cardDao.accessibility, color = cardDao.cardColor.colorCardBg)
-            LinearProgressBar(percentage = cardDao.price, color = cardDao.cardColor.colorCardBg)
+            Box(modifier = Modifier
+                .weight(1f)
+                .padding(10.dp)){
+                LinearProgressBar(percentage = cardDao.accessibility, color = colorAnim)
+            }
+            Box(modifier = Modifier
+                .weight(1f)
+                .padding(10.dp)){
+                LinearProgressBar(percentage = cardDao.price, color = colorAnim)
+            }
         }
     }
 }
@@ -229,15 +253,15 @@ fun MoreContent(
 fun LinearProgressBar(
     percentage: Float?,
     fontSize: TextUnit = 16.sp,
-    color: Color = textOrange,
+    color: State<Color>,
     strokeWidth: Dp = 8.dp,
-    size: Dp = 80.dp,
+    size: Int = 80,
     animationDuration: Int = 1000,
-    animationDelay: Int = 0
+    animationDelay: Int = 0,
+//    onTextChange: (text:String)->Unit
 ){
-    var animationPlayed by remember {
-        mutableStateOf(false)
-    }
+    var animationPlayed by remember { mutableStateOf(false) }
+    var sizeAct by remember { mutableStateOf(size) }
 
     val curPercentage = animateFloatAsState(
         targetValue = if (animationPlayed) percentage?:0f else 0f,
@@ -251,29 +275,33 @@ fun LinearProgressBar(
         animationPlayed = true
     }
 
-    Box {
+    Box(modifier = Modifier.onGloballyPositioned {
+        sizeAct = it.size.width
+    }) {
 
         CardSecondText(
             text = "${(curPercentage.value * 100).roundToInt()} %",
             textColor = Color.White
         )
 
+//        Text(text = "${(curPercentage.value * 100).roundToInt()} %")
+
         Box(contentAlignment = Alignment.Center) {
             Canvas(modifier = Modifier
-                .size(width = size, height = strokeWidth)){
+                .size(width = sizeAct.dp, height = strokeWidth)){
                 drawLine(
                     color = Color.White,
                     strokeWidth = strokeWidth.toPx(),
                     cap = StrokeCap.Round,
                     start = Offset(0f,0f),
-                    end = Offset(size.toPx(),0f)
+                    end = Offset(sizeAct.toFloat(),0f)
                 )
                 drawLine(
-                    color = color,
+                    color = color.value,
                     strokeWidth = strokeWidth.toPx(),
                     cap = StrokeCap.Round,
                     start = Offset(0f,0f),
-                    end = Offset(curPercentage.value * size.toPx(),0f)
+                    end = Offset(curPercentage.value * sizeAct,0f)
                 )
             }
         }

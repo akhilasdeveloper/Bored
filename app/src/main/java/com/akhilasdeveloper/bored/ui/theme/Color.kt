@@ -40,11 +40,38 @@ val cardColor4 = CardColor(
     colorCardSecondFg = Color(0xFFFFFFFF)
 )
 
+//card5
+val cardColor5 = CardColor(
+    colorCardBg = Color(0xFFAC9645),
+    colorCardFg = Color(0xFFFFFFFF),
+    colorCardSecondBg = Color(0xFF494949),
+    colorCardSecondFg = Color(0xFFFFFFFF)
+)
+
+//card6
+val cardColor6 = CardColor(
+    colorCardBg = Color(0xFFAC4592),
+    colorCardFg = Color(0xFFFFFFFF),
+    colorCardSecondBg = Color(0xFF494949),
+    colorCardSecondFg = Color(0xFFFFFFFF)
+)
+
+//card6
+val cardColor7 = CardColor(
+    colorCardBg = Color(0xFF8A1F1F),
+    colorCardFg = Color(0xFFFFFFFF),
+    colorCardSecondBg = Color(0xFF494949),
+    colorCardSecondFg = Color(0xFFFFFFFF)
+)
+
 val cardColors = listOf(
     cardColor1,
     cardColor2,
     cardColor3,
-    cardColor4
+    cardColor4,
+    cardColor5,
+    cardColor6,
+    cardColor7
 )
 
 val buttonOrange = Color(0xFFFFDCDC)
