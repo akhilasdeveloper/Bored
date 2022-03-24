@@ -1,7 +1,6 @@
 package com.akhilasdeveloper.bored.ui
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.akhilasdeveloper.bored.api.response.ApiResponse
@@ -14,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +23,8 @@ class MainViewModel
 ) : ViewModel() {
 
     val boredActivityState : MutableState<CardDao?> = mutableStateOf(null)
+    val cards = mutableStateListOf<CardDao>()
+    val cardStates = mutableListOf<MutableState<Boolean?>>()
 
     fun getRandomActivity() {
         viewModelScope.launch {
@@ -32,7 +34,11 @@ class MainViewModel
                         is ApiResponse.Success<*> -> {
                             response.data?.let { data->
                                 (data as BoredApiResponse).let {
-                                    boredActivityState.value = generateCardDaoFromResponse(it)
+                                    generateCardDaoFromResponse(it).let { cardDao ->
+                                        boredActivityState.value = cardDao
+                                        cards.add(cardDao)
+                                        cardStates.add(mutableStateOf(null))
+                                    }
                                 }
                             }
                         }
@@ -45,6 +51,15 @@ class MainViewModel
                     }
                 }
                 .launchIn(this)
+        }
+    }
+
+    fun removeCardAt(index:Int){
+        try {
+            cards.removeAt(index)
+            cardStates.removeAt(index)
+        }catch (e:Exception){
+            Timber.d("card remove exception : $e")
         }
     }
 
