@@ -7,7 +7,6 @@ import com.akhilasdeveloper.bored.api.response.ApiResponse
 import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
-import com.akhilasdeveloper.bored.ui.theme.cardColor1
 import com.akhilasdeveloper.bored.ui.theme.cardColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -25,41 +24,50 @@ class MainViewModel
     val boredActivityState : MutableState<CardDao?> = mutableStateOf(null)
     val cards = mutableStateListOf<CardDao>()
     val cardStates = mutableListOf<MutableState<Boolean?>>()
+    val loadingState = mutableStateOf(false)
+    private var cardLoadCompletedState = true
 
     fun getRandomActivity() {
-        viewModelScope.launch {
-            boredApiRepository.getRandomActivity()
-                .onEach { response ->
-                    when(response){
-                        is ApiResponse.Success<*> -> {
-                            response.data?.let { data->
-                                (data as BoredApiResponse).let {
-                                    generateCardDaoFromResponse(it).let { cardDao ->
-                                        boredActivityState.value = cardDao
-                                        cards.add(cardDao)
-                                        cardStates.add(mutableStateOf(null))
+        if (cardLoadCompletedState) {
+            setCardLoadingCompletedState(false)
+            viewModelScope.launch {
+                boredApiRepository.getRandomActivity()
+                    .onEach { response ->
+                        when (response) {
+                            is ApiResponse.Success<*> -> {
+                                response.data?.let { data ->
+                                    (data as BoredApiResponse).let {
+                                        generateCardDaoFromResponse(it).let { cardDao ->
+                                            boredActivityState.value = cardDao
+                                            cards.add(cardDao)
+                                            cardStates.add(mutableStateOf(null))
+                                        }
                                     }
                                 }
+                                loadingState.value = false
+                            }
+                            is ApiResponse.Error<*> -> {
+                                loadingState.value = false
+                            }
+                            is ApiResponse.Loading<*> -> {
+                                loadingState.value = true
                             }
                         }
-                        is ApiResponse.Error<*> -> {
-
-                        }
-                        is ApiResponse.Loading<*> -> {
-
-                        }
                     }
-                }
-                .launchIn(this)
+                    .launchIn(this)
+            }
         }
     }
 
-    fun removeCardAt(index:Int){
-        try {
-            cards.removeAt(index)
-            cardStates.removeAt(index)
-        }catch (e:Exception){
-            Timber.d("card remove exception : $e")
+    fun removeCard(cardDao: CardDao){
+        if (cardLoadCompletedState && cards.isNotEmpty()) {
+            try {
+                val index = cards.indexOf(cardDao)
+                cards.removeAt(index)
+                cardStates.removeAt(index)
+            } catch (e: Exception) {
+                Timber.d("card remove exception : $e")
+            }
         }
     }
 
@@ -75,5 +83,12 @@ class MainViewModel
 
 
     private fun getRandomCardColor() = cardColors[(cardColors.indices).random()]
+
+    fun setCardLoadingCompletedState(state:Boolean){
+        cardLoadCompletedState = state
+    }
+
+    fun getCardLoadingCompletedState () = cardLoadCompletedState
+
 
 }

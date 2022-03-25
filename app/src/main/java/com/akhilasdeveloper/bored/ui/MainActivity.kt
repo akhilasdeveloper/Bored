@@ -1,35 +1,37 @@
 package com.akhilasdeveloper.bored.ui
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.ui.theme.*
@@ -72,8 +74,11 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                     .weight(1f)
                     .background(buttonOrange)
                     .clickable {
-                        cardStates[0].value = false
-                        viewModel.getRandomActivity()
+                        if (viewModel.getCardLoadingCompletedState()) {
+                            cardStates.last().value = true
+                            if (cardStates.size <= 1)
+                                viewModel.getRandomActivity()
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -91,8 +96,11 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                     .weight(1f)
                     .background(buttonGreen)
                     .clickable {
-                        cardStates[0].value = true
-//                        viewModel.removeCardAt(0)
+                        if (viewModel.getCardLoadingCompletedState()) {
+                            cardStates.last().value = false
+                            if (cardStates.size <= 1)
+                                viewModel.getRandomActivity()
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -113,38 +121,96 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
         cards.forEachIndexed { index, card ->
             CardView(
                 cardDao = card,
-                cardState = cardStates[index]
+                cardState = cardStates[index],
+                onRemoveCompleted = {
+                    viewModel.removeCard(card)
+                },
+                onSelected = {
+                    cardStates[index].value = it
+                    viewModel.getRandomActivity()
+                },
+                onLoadCompleted = {
+                    viewModel.setCardLoadingCompletedState(true)
+                    Timber.d("Loading Completed")
+                }
             )
         }
+
+        AnimatedVisibility(
+            visible = viewModel.loadingState.value,
+            enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+            exit = fadeOut(animationSpec = tween(durationMillis = 500))
+        ) {
+            CircularProgressIndicator()
+        }
     }
+
 }
 
 @Composable
 fun CardView(
     cardDao: CardDao,
     modifier: Modifier = Modifier,
-    cardState: State<Boolean?>
+    cardState: State<Boolean?>,
+    onSelected: (isPass: Boolean) -> Unit,
+    onRemoveCompleted: () -> Unit,
+    onLoadCompleted: () -> Unit
 ) {
-    var moreIsVisible by remember { mutableStateOf(false) }
-    var cardIsVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = true) {
-        cardIsVisible = true
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+    var scale by remember { mutableStateOf(1f) }
+
+    var isAnimate by remember { mutableStateOf(false) }
+    var isFinished by remember { mutableStateOf(false) }
+
+    val offsetXAnim by animateFloatAsState(targetValue = offsetX)
+    val offsetYAnim by animateFloatAsState(targetValue = offsetY)
+    val scaleAnim by animateFloatAsState(targetValue = scale, finishedListener = {
+        if (it == 0f) {
+            onRemoveCompleted()
+        }
+    })
+
+    var moreIsVisible by remember { mutableStateOf(false) }
+    val cardIsVisible = remember { MutableTransitionState(false) }
+        .apply { targetState = true }
+
+    if (cardIsVisible.targetState &&
+        cardIsVisible.currentState && cardIsVisible.isIdle
+    ) {
+        onLoadCompleted()
     }
 
+    /*LaunchedEffect(key1 = true) {
+        cardIsVisible.targetState = true
+    }*/
+
     cardState.value?.let {
-        if (it){
-            Timber.d("Toast : Right ${cardDao.activityName}")
-            cardIsVisible = false
-        }else{
-            Timber.d("Toast : Left ${cardDao.activityName}")
-            cardIsVisible = true
+        val configuration = LocalConfiguration.current
+        val screenDensity = configuration.densityDpi / 160f
+        val screenHeightPx = configuration.screenHeightDp.toFloat() * screenDensity
+        val screenWidthPx = configuration.screenWidthDp.toFloat() * screenDensity
+
+        isAnimate = true
+
+        val x = if (it) {
+            -screenWidthPx / 4
+        } else {
+            screenWidthPx / 4
         }
+
+        val y = screenHeightPx / 2
+
+        offsetX = x
+        offsetY = y
+
+        scale = 0f
 
     }
 
     AnimatedVisibility(
-        visible = cardIsVisible,
+        visibleState = cardIsVisible,
         enter = expandVertically(animationSpec = tween(durationMillis = 500)),
         exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
     ) {
@@ -153,6 +219,54 @@ fun CardView(
             backgroundColor = cardDao.cardColor.colorCardBg,
             elevation = 5.dp,
             modifier = modifier
+                .offset {
+                    if (isAnimate) IntOffset(
+                        offsetXAnim.roundToInt(),
+                        offsetYAnim.roundToInt()
+                    ) else
+                        IntOffset(offsetX.roundToInt(), offsetY.roundToInt())
+                }
+                .scale(scaleAnim)
+                .pointerInput(Unit) {
+                    detectDragGestures(onDragEnd = {
+
+                        isAnimate = true
+
+                        if (offsetX >= 200) {
+                            onSelected(false)
+                            isFinished = true
+                        }
+
+                        if (offsetX <= -200) {
+                            onSelected(true)
+                            isFinished = true
+                        }
+
+                        if (!isFinished) {
+                            offsetX = 0f
+                            offsetY = 0f
+                        }
+
+                    }) { change, dragAmount ->
+
+                        change.consumeAllChanges()
+
+                        isAnimate = false
+
+                        if (!isFinished) {
+                            offsetX += dragAmount.x * scale
+                            if (offsetY + (dragAmount.y * scale) >= 0)
+                                offsetY += dragAmount.y * scale
+
+
+                            scale = if (offsetX >= 200 || offsetX <= -200) {
+                                .3f
+                            } else {
+                                1f
+                            }
+                        }
+                    }
+                }
         ) {
             Column(
                 modifier = Modifier
