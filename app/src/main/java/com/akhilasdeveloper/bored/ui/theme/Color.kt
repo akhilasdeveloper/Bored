@@ -74,6 +74,9 @@ val cardColors = listOf(
     cardColor7
 )
 
+val colorCardSecond = Color(0xFF494949)
+val colorProgressSecond = Color(0xFFEBEBEB)
+
 val buttonOrange = Color(0xFFFFDCDC)
 val buttonGreen = Color(0xFFDAF3FF)
 val textOrange = Color(0xFFC25C5C)

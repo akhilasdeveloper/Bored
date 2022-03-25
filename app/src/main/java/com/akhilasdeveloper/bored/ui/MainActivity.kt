@@ -12,11 +12,13 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -36,6 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.ui.theme.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import timber.log.Timber
 import kotlin.math.roundToInt
 
@@ -124,6 +128,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                 cardState = cardStates[index],
                 onRemoveCompleted = {
                     viewModel.removeCard(card)
+                    viewModel.getRandomActivity()
                 },
                 onSelected = {
                     cardStates[index].value = it
@@ -176,15 +181,10 @@ fun CardView(
     val cardIsVisible = remember { MutableTransitionState(false) }
         .apply { targetState = true }
 
-    if (cardIsVisible.targetState &&
-        cardIsVisible.currentState && cardIsVisible.isIdle
-    ) {
+    LaunchedEffect(key1 = true) {
+        delay(500)
         onLoadCompleted()
     }
-
-    /*LaunchedEffect(key1 = true) {
-        cardIsVisible.targetState = true
-    }*/
 
     cardState.value?.let {
         val configuration = LocalConfiguration.current
@@ -272,6 +272,8 @@ fun CardView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
+                        indication = rememberRipple(color = cardDao.cardColor.colorCardFg),
+                        interactionSource = remember { MutableInteractionSource() },
                         onClick = {
                             moreIsVisible = !moreIsVisible
                         }
@@ -329,7 +331,7 @@ fun CardSecondText(
     modifier: Modifier = Modifier,
     text: String?,
     textColor: Color,
-    fontSize: TextUnit = 18.sp
+    fontSize: TextUnit = 16.sp
 ) {
     AnimatedVisibility(
         visible = !text.isNullOrEmpty(),
@@ -384,7 +386,8 @@ fun MoreContent(
                 LinearProgressBar(
                     percentage = cardDao.accessibility,
                     color = cardDao.cardColor.colorCardBg,
-                    text = "Accessibility"
+                    text = "Accessibility",
+                    fontColor = cardDao.cardColor.colorCardSecondFg
                 )
             }
             Box(
@@ -395,7 +398,8 @@ fun MoreContent(
                 LinearProgressBar(
                     percentage = cardDao.price,
                     color = cardDao.cardColor.colorCardBg,
-                    text = "Price"
+                    text = "Price",
+                    fontColor = cardDao.cardColor.colorCardSecondFg
                 )
             }
         }
@@ -405,8 +409,10 @@ fun MoreContent(
 @Composable
 fun LinearProgressBar(
     percentage: Float?,
-    fontSize: TextUnit = 16.sp,
+    fontSize: TextUnit = 14.sp,
     color: Color,
+    colorSecond: Color = colorProgressSecond,
+    fontColor: Color = Color.White,
     strokeWidth: Dp = 8.dp,
     size: Int = 80,
     animationDuration: Int = 1000,
@@ -438,7 +444,7 @@ fun LinearProgressBar(
                     .size(width = sizeAct.dp, height = strokeWidth)
             ) {
                 drawLine(
-                    color = Color.White,
+                    color = colorSecond,
                     strokeWidth = strokeWidth.toPx(),
                     cap = StrokeCap.Round,
                     start = Offset(0f, 0f),
@@ -447,7 +453,7 @@ fun LinearProgressBar(
                 drawLine(
                     color = color,
                     strokeWidth = strokeWidth.toPx(),
-                    cap = StrokeCap.Round,
+                    cap = if(curPercentage.value != 0f) StrokeCap.Round else Stroke.DefaultCap,
                     start = Offset(0f, 0f),
                     end = Offset(curPercentage.value * sizeAct, 0f)
                 )
@@ -456,7 +462,7 @@ fun LinearProgressBar(
 
         CardSecondText(
             text = "$text ${(curPercentage.value * 100).roundToInt()} %",
-            textColor = Color.White,
+            textColor = fontColor,
             fontSize = fontSize
         )
     }
