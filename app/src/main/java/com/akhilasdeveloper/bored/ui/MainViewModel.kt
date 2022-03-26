@@ -1,6 +1,6 @@
 package com.akhilasdeveloper.bored.ui
 
-import android.R
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -10,7 +10,6 @@ import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardColor
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
-import com.akhilasdeveloper.bored.ui.theme.cardColors
 import com.akhilasdeveloper.bored.ui.theme.colorCardSecond
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -29,6 +28,8 @@ class MainViewModel
     val cardStates = mutableListOf<MutableState<Boolean?>>()
     val loadingState = mutableStateOf(false)
     private var cardLoadCompletedState = true
+
+    var isLightTheme = true
 
     fun getRandomActivity() {
         if (cardLoadCompletedState && cards.isEmpty()) {
@@ -83,12 +84,18 @@ class MainViewModel
         cardColor = getRandomCardColor()
     )
 
+    fun setCardLoadingCompletedState(state: Boolean) {
+        cardLoadCompletedState = state
+    }
+
+    fun getCardLoadingCompletedState() = cardLoadCompletedState
+
     private fun getRandomCardColor(): CardColor {
         val color = generateRandomColor()
         val colorFg = getForegroundColor(color = color)
         val colorSecond = getColorSecond(color)
         val colorSecondFg = getForegroundColor(colorSecond)
-        Timber.d("Brightness : ${calculateBrightness(color = color)}")
+
         return CardColor(
             colorCardBg = color,
             colorCardFg = colorFg,
@@ -97,36 +104,33 @@ class MainViewModel
         )
     }
 
-    private fun getColorSecond(color: Color): Color =
-        if (calculateBrightness(color = color) >= 0.5f) {
-            colorCardSecond
-        } else {
-            Color.White
-        }
-
-    fun setCardLoadingCompletedState(state: Boolean) {
-        cardLoadCompletedState = state
-    }
-
-    fun getCardLoadingCompletedState() = cardLoadCompletedState
-
     private fun generateRandomColor() = Color(
         red = generateRandomColorValue(),
         blue = generateRandomColorValue(),
         green = generateRandomColorValue()
     )
 
-    private fun generateRandomColorValue() = (0..254).random()
+    private fun generateRandomColorValue() = if(isLightTheme) (100..254).random() else (50..180).random()
+
     private fun calculateBrightness(color: Color) =
         ((color.red * 299) + (color.green * 587) + (color.blue * 114)) / 1000
 
+    fun isLightColor(color: Color, threshold:Float = 0.7f) = calculateBrightness(color = color) >= threshold
+
     private fun getForegroundColor(color: Color): Color =
-        if (calculateBrightness(color = color) >= 0.6f) {
+        if (isLightColor(color = color)) {
             colorCardSecond
         } else {
             Color.White
         }
 
+    private fun getColorSecond(color: Color): Color =
+        if (isLightColor(color = color, threshold = 0.5f)) {
+            colorCardSecond
+        } else {
+            Color.White
+        }
+    fun transparentValue() = if (!isLightTheme) Color(red = 0, blue = 0, green = 0, alpha = 0) else Color(red = 255, blue = 255, green = 255, alpha = 0)
 }
 
 

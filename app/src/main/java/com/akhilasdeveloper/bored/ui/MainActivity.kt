@@ -7,12 +7,14 @@ import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -38,6 +41,7 @@ import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.ui.theme.*
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import timber.log.Timber
@@ -46,15 +50,19 @@ import kotlin.math.roundToInt
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val viewModel: MainViewModel by viewModels()
+
         viewModel.getRandomActivity()
 
         setContent {
-            Greeting()
+            viewModel.isLightTheme = !isSystemInDarkTheme()
+            Box(modifier = Modifier.fillMaxSize().background(if (isSystemInDarkTheme()) colorCardSecond else Color.White)){
+                Greeting()
+            }
         }
     }
 }
@@ -65,18 +73,93 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
     val cardStates = viewModel.cardStates
     val cards = viewModel.cards
 
-    Box(
+    val systemUiController = rememberSystemUiController()
+
+    var systemBarColor by remember {
+        mutableStateOf(Color.White)
+    }
+
+    var systemBarColorFg by remember {
+        mutableStateOf(colorCardSecond)
+    }
+
+    var selectionPassColor by remember {
+        mutableStateOf(viewModel.transparentValue())
+    }
+
+    var selectionAddColor by remember {
+        mutableStateOf(viewModel.transparentValue())
+    }
+
+    var passFontSize by remember {
+        mutableStateOf(16)
+    }
+
+    var addFontSize by remember {
+        mutableStateOf(16)
+    }
+
+    val animSystemBarColor by animateColorAsState(targetValue = systemBarColor)
+    val animSystemBarFgColor by animateColorAsState(targetValue = systemBarColorFg)
+    val animSelectionPassColor by animateColorAsState(targetValue = selectionPassColor)
+    val animSelectionAddColor by animateColorAsState(targetValue = selectionAddColor)
+    val animPassFontSize by animateIntAsState(targetValue = passFontSize)
+    val animAddFontSize by animateIntAsState(targetValue = addFontSize)
+
+    systemUiController.setSystemBarsColor(
+        color = animSystemBarColor,
+        darkIcons = viewModel.isLightColor(animSystemBarColor)
+    )
+
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter
+        verticalArrangement = Arrangement.Bottom
     ) {
 
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 Modifier
                     .weight(1f)
-                    .background(buttonOrange)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                viewModel.transparentValue(),
+                                animSelectionPassColor
+                            )
+                        )
+                    )
+                    .padding(20.dp)
+                    .fillMaxHeight()
+            )
+            Box(
+                Modifier
+                    .weight(1f)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                viewModel.transparentValue(),
+                                animSelectionAddColor
+                            )
+                        )
+                    )
+                    .padding(20.dp)
+                    .fillMaxHeight()
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(animSystemBarColor),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                Modifier
+                    .weight(1f)
                     .clickable {
                         if (viewModel.getCardLoadingCompletedState()) {
                             cardStates.last().value = true
@@ -91,14 +174,17 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                         .padding(10.dp)
                 )
                 {
-                    CardSecondText(text = "Pass", textColor = textOrange)
+                    CardSecondText(
+                        text = "Pass",
+                        textColor = animSystemBarFgColor,
+                        fontSize = animPassFontSize.sp
+                    )
                 }
             }
 
             Box(
                 Modifier
                     .weight(1f)
-                    .background(buttonGreen)
                     .clickable {
                         if (viewModel.getCardLoadingCompletedState()) {
                             cardStates.last().value = false
@@ -110,7 +196,11 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
             ) {
                 Box(Modifier.padding(10.dp))
                 {
-                    CardSecondText(text = "Add", textColor = textGreen)
+                    CardSecondText(
+                        text = "Add",
+                        textColor = animSystemBarFgColor,
+                        fontSize = animAddFontSize.sp
+                    )
                 }
             }
         }
@@ -123,12 +213,20 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
     ) {
 
         cards.forEachIndexed { index, card ->
+
+            systemBarColor = card.cardColor.colorCardBg
+            systemBarColorFg = card.cardColor.colorCardFg
+
             CardView(
                 cardDao = card,
                 cardState = cardStates[index],
                 onRemoveCompleted = {
                     viewModel.removeCard(card)
                     viewModel.getRandomActivity()
+                    passFontSize = 16
+                    selectionPassColor = viewModel.transparentValue()
+                    addFontSize = 16
+                    selectionAddColor = viewModel.transparentValue()
                 },
                 onSelected = {
                     cardStates[index].value = it
@@ -137,6 +235,29 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                 onLoadCompleted = {
                     viewModel.setCardLoadingCompletedState(true)
                     Timber.d("Loading Completed")
+                },
+                onDragSelect = {
+                    when (it) {
+                        true -> {
+                            passFontSize = 28
+                            selectionPassColor = systemBarColor
+                            addFontSize = 16
+                            selectionAddColor = viewModel.transparentValue()
+                        }
+                        false -> {
+                            passFontSize = 16
+                            selectionPassColor = viewModel.transparentValue()
+                            addFontSize = 28
+                            selectionAddColor = systemBarColor
+                        }
+                        else -> {
+                            passFontSize = 16
+                            selectionPassColor = viewModel.transparentValue()
+                            addFontSize = 16
+                            selectionAddColor = viewModel.transparentValue()
+                        }
+                    }
+
                 }
             )
         }
@@ -146,7 +267,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
             enter = fadeIn(animationSpec = tween(durationMillis = 500)),
             exit = fadeOut(animationSpec = tween(durationMillis = 500))
         ) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = animSystemBarColor)
         }
     }
 
@@ -158,6 +279,7 @@ fun CardView(
     modifier: Modifier = Modifier,
     cardState: State<Boolean?>,
     onSelected: (isPass: Boolean) -> Unit,
+    onDragSelect: (isPass: Boolean?) -> Unit,
     onRemoveCompleted: () -> Unit,
     onLoadCompleted: () -> Unit
 ) {
@@ -259,10 +381,19 @@ fun CardView(
                                 offsetY += dragAmount.y * scale
 
 
-                            scale = if (offsetX >= 200 || offsetX <= -200) {
-                                .3f
+                            if (offsetX >= 200 || offsetX <= -200) {
+                                scale = .3f
+
+                                if (offsetX >= 200)
+                                    onDragSelect(false)
+
+                                if (offsetX <= -200)
+                                    onDragSelect(true)
+
                             } else {
-                                1f
+                                scale = 1f
+
+                                onDragSelect(null)
                             }
                         }
                     }
@@ -283,7 +414,6 @@ fun CardView(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1f)
                         .padding(20.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -294,13 +424,13 @@ fun CardView(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(20.dp))
                 AnimatedVisibility(
                     visible = moreIsVisible,
                     enter = expandVertically(animationSpec = tween(durationMillis = 500)),
                     exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
                     modifier = Modifier.background(cardDao.cardColor.colorCardSecondBg)
                 ) {
+                    Spacer(modifier = Modifier.height(20.dp))
                     MoreContent(
                         cardDao = cardDao
                     )
@@ -453,7 +583,7 @@ fun LinearProgressBar(
                 drawLine(
                     color = color,
                     strokeWidth = strokeWidth.toPx(),
-                    cap = if(curPercentage.value != 0f) StrokeCap.Round else Stroke.DefaultCap,
+                    cap = if (curPercentage.value != 0f) StrokeCap.Round else Stroke.DefaultCap,
                     start = Offset(0f, 0f),
                     end = Offset(curPercentage.value * sizeAct, 0f)
                 )
