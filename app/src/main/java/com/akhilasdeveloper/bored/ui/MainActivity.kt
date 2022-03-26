@@ -60,7 +60,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             viewModel.isLightTheme = !isSystemInDarkTheme()
-            Box(modifier = Modifier.fillMaxSize().background(if (isSystemInDarkTheme()) colorCardSecond else Color.White)){
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(if (isSystemInDarkTheme()) colorMain else colorMainLight)){
                 Greeting()
             }
         }
@@ -75,12 +77,16 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
 
     val systemUiController = rememberSystemUiController()
 
+    var progressBarColor by remember {
+        mutableStateOf(accentColor)
+    }
+
     var systemBarColor by remember {
-        mutableStateOf(Color.White)
+        mutableStateOf(accentColor)
     }
 
     var systemBarColorFg by remember {
-        mutableStateOf(colorCardSecond)
+        mutableStateOf(colorMain)
     }
 
     var selectionPassColor by remember {
@@ -99,17 +105,20 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
         mutableStateOf(16)
     }
 
-    val animSystemBarColor by animateColorAsState(targetValue = systemBarColor)
-    val animSystemBarFgColor by animateColorAsState(targetValue = systemBarColorFg)
     val animSelectionPassColor by animateColorAsState(targetValue = selectionPassColor)
     val animSelectionAddColor by animateColorAsState(targetValue = selectionAddColor)
     val animPassFontSize by animateIntAsState(targetValue = passFontSize)
     val animAddFontSize by animateIntAsState(targetValue = addFontSize)
 
     systemUiController.setSystemBarsColor(
-        color = animSystemBarColor,
-        darkIcons = viewModel.isLightColor(animSystemBarColor)
+        color = systemBarColor,
+        darkIcons = viewModel.isLightColor(systemBarColor)
     )
+
+    LaunchedEffect(key1 = true, block ={
+        systemBarColor = if (viewModel.isLightTheme) colorMainLight else colorMain
+        systemBarColorFg = if (viewModel.isLightTheme) colorMain else colorMainLight
+    })
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -154,7 +163,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(animSystemBarColor),
+                .background(systemBarColor),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -176,7 +185,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                 {
                     CardSecondText(
                         text = "Pass",
-                        textColor = animSystemBarFgColor,
+                        textColor = systemBarColorFg,
                         fontSize = animPassFontSize.sp
                     )
                 }
@@ -198,7 +207,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                 {
                     CardSecondText(
                         text = "Add",
-                        textColor = animSystemBarFgColor,
+                        textColor = systemBarColorFg,
                         fontSize = animAddFontSize.sp
                     )
                 }
@@ -214,8 +223,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
 
         cards.forEachIndexed { index, card ->
 
-            systemBarColor = card.cardColor.colorCardBg
-            systemBarColorFg = card.cardColor.colorCardFg
+            progressBarColor = card.cardColor.colorCardBg
 
             CardView(
                 cardDao = card,
@@ -240,7 +248,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                     when (it) {
                         true -> {
                             passFontSize = 28
-                            selectionPassColor = systemBarColor
+                            selectionPassColor = card.cardColor.colorCardBg.copy(alpha = .7f)
                             addFontSize = 16
                             selectionAddColor = viewModel.transparentValue()
                         }
@@ -248,7 +256,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                             passFontSize = 16
                             selectionPassColor = viewModel.transparentValue()
                             addFontSize = 28
-                            selectionAddColor = systemBarColor
+                            selectionAddColor = card.cardColor.colorCardBg.copy(alpha = .7f)
                         }
                         else -> {
                             passFontSize = 16
@@ -267,7 +275,7 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
             enter = fadeIn(animationSpec = tween(durationMillis = 500)),
             exit = fadeOut(animationSpec = tween(durationMillis = 500))
         ) {
-            CircularProgressIndicator(color = animSystemBarColor)
+            CircularProgressIndicator(color = progressBarColor)
         }
     }
 

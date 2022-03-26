@@ -8,6 +8,16 @@ val Purple500 = Color(0xFFDD205E)
 val Purple700 = Color(0xFFDD205E)
 val Teal200 = Color(0xFF03DAC5)
 
+val colorMain = Color(0xFF222222)
+val colorMainLight = Color(0xFFFFFFFF)
+
+val accentColor = Color(0xFFDD205E)
+val accentFgColor = Color(0xFFFFFFFF)
+
+val colorCardSecond = Color(0xFF383838)
+val colorCardSecondFg = Color(0xFFFFFFFF)
+val colorProgressSecond = Color(0xFFEBEBEB)
+
 //card1
 val cardColor1 = CardColor(
     colorCardBg = Color(0xFFFF8BA0),
@@ -73,9 +83,6 @@ val cardColors = listOf(
     cardColor6,
     cardColor7
 )
-
-val colorCardSecond = Color(0xFF494949)
-val colorProgressSecond = Color(0xFFEBEBEB)
 
 val buttonOrange = Color(0xFFFFDCDC)
 val buttonGreen = Color(0xFFDAF3FF)

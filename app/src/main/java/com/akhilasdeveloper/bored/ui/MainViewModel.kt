@@ -11,6 +11,9 @@ import com.akhilasdeveloper.bored.data.CardColor
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
 import com.akhilasdeveloper.bored.ui.theme.colorCardSecond
+import com.akhilasdeveloper.bored.ui.theme.colorCardSecondFg
+import com.akhilasdeveloper.bored.ui.theme.colorMain
+import com.akhilasdeveloper.bored.ui.theme.colorMainLight
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -130,7 +133,7 @@ class MainViewModel
         } else {
             Color.White
         }
-    fun transparentValue() = if (!isLightTheme) Color(red = 0, blue = 0, green = 0, alpha = 0) else Color(red = 255, blue = 255, green = 255, alpha = 0)
+    fun transparentValue() = if (!isLightTheme) colorMain.copy(alpha = 0f) else colorMainLight.copy(alpha = 0f)
 }
 
 
