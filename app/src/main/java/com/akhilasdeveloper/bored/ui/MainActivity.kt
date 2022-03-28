@@ -1,5 +1,6 @@
 package com.akhilasdeveloper.bored.ui
 
+import android.opengl.Visibility
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +18,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
@@ -37,10 +39,14 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.ui.theme.*
+import com.akhilasdeveloper.bored.util.Constants.ADD_SELECTION
+import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
+import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -60,15 +66,18 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             viewModel.isLightTheme = !isSystemInDarkTheme()
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(if (isSystemInDarkTheme()) colorMain else colorMainLight)){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(if (isSystemInDarkTheme()) colorMain else colorMainLight)
+            ) {
                 Greeting()
             }
         }
     }
 }
 
+@Preview(showBackground = true)
 @Composable
 fun Greeting(viewModel: MainViewModel = viewModel()) {
 
@@ -93,29 +102,15 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
         mutableStateOf(viewModel.transparentValue())
     }
 
-    var selectionAddColor by remember {
-        mutableStateOf(viewModel.transparentValue())
-    }
-
-    var passFontSize by remember {
-        mutableStateOf(16)
-    }
-
-    var addFontSize by remember {
-        mutableStateOf(16)
-    }
-
-    val animSelectionPassColor by animateColorAsState(targetValue = selectionPassColor)
-    val animSelectionAddColor by animateColorAsState(targetValue = selectionAddColor)
-    val animPassFontSize by animateIntAsState(targetValue = passFontSize)
-    val animAddFontSize by animateIntAsState(targetValue = addFontSize)
+    val animPassFontSize by animateIntAsState(targetValue = viewModel.passFontSize.value)
+    val animAddFontSize by animateIntAsState(targetValue = viewModel.addFontSize.value)
 
     systemUiController.setSystemBarsColor(
         color = systemBarColor,
         darkIcons = viewModel.isLightColor(systemBarColor)
     )
 
-    LaunchedEffect(key1 = true, block ={
+    LaunchedEffect(key1 = true, block = {
         systemBarColor = if (viewModel.isLightTheme) colorMainLight else colorMain
         systemBarColorFg = if (viewModel.isLightTheme) colorMain else colorMainLight
     })
@@ -125,41 +120,83 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
         verticalArrangement = Arrangement.Bottom
     ) {
 
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            Modifier.weight(1f),
+            contentAlignment = Alignment.BottomCenter
         ) {
-            Box(
-                Modifier
-                    .weight(1f)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                viewModel.transparentValue(),
-                                animSelectionPassColor
-                            )
+
+            Column {
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    cards.forEachIndexed { index, card ->
+
+                        progressBarColor = card.cardColor.colorCardBg
+                        selectionPassColor = card.cardColor.colorCardBg.copy(alpha = .7f)
+
+                        CardView(
+                            cardDao = card,
+                            cardState = cardStates[index],
+                            onRemoveCompleted = {
+                                viewModel.removeCard(card)
+                                viewModel.getRandomActivity()
+                            },
+                            onSelected = {
+                                cardStates[index].value = it
+                                viewModel.getRandomActivity()
+                            },
+                            onLoadCompleted = {
+                                viewModel.setCardLoadingCompletedState(true)
+                                Timber.d("Loading Completed")
+                            },
+                            onDragSelect = {
+                                viewModel.setDragSelectState(it)
+                            }
                         )
+                    }
+
+                    LoadingProgress(color = progressBarColor, visibility = viewModel.loadingState.value)
+                }
+
+                Box(
+                    Modifier
+                        .padding(10.dp)
+                        .background(color = systemBarColor)
+                ) {
+                    CardSecondText(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Activities",
+                        textColor = systemBarColorFg
                     )
-                    .padding(20.dp)
-                    .fillMaxHeight()
-            )
-            Box(
-                Modifier
-                    .weight(1f)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                viewModel.transparentValue(),
-                                animSelectionAddColor
-                            )
-                        )
-                    )
-                    .padding(20.dp)
-                    .fillMaxHeight()
-            )
+                }
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SelectionShade(
+                    Modifier.weight(1f),
+                    selectionColor = selectionPassColor,
+                    visibility = viewModel.passVisibility.value
+                )
+
+                SelectionShade(
+                    Modifier.weight(1f),
+                    selectionColor = selectionPassColor,
+                    visibility = viewModel.addVisibility.value
+                )
+
+            }
         }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,7 +217,8 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
             ) {
                 Box(
                     Modifier
-                        .padding(10.dp)
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
                 )
                 {
                     CardSecondText(
@@ -203,7 +241,10 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Box(Modifier.padding(10.dp))
+                Box(
+                    Modifier.height(100.dp),
+                    contentAlignment = Alignment.Center
+                )
                 {
                     CardSecondText(
                         text = "Add",
@@ -214,71 +255,47 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
             }
         }
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
+}
+
+@Composable
+fun LoadingProgress(visibility: Boolean, color: Color) {
+    AnimatedVisibility(
+        visible = visibility,
+        enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+        exit = fadeOut(animationSpec = tween(durationMillis = 500))
     ) {
+        CircularProgressIndicator(color = color)
+    }
+}
 
-        cards.forEachIndexed { index, card ->
-
-            progressBarColor = card.cardColor.colorCardBg
-
-            CardView(
-                cardDao = card,
-                cardState = cardStates[index],
-                onRemoveCompleted = {
-                    viewModel.removeCard(card)
-                    viewModel.getRandomActivity()
-                    passFontSize = 16
-                    selectionPassColor = viewModel.transparentValue()
-                    addFontSize = 16
-                    selectionAddColor = viewModel.transparentValue()
-                },
-                onSelected = {
-                    cardStates[index].value = it
-                    viewModel.getRandomActivity()
-                },
-                onLoadCompleted = {
-                    viewModel.setCardLoadingCompletedState(true)
-                    Timber.d("Loading Completed")
-                },
-                onDragSelect = {
-                    when (it) {
-                        true -> {
-                            passFontSize = 28
-                            selectionPassColor = card.cardColor.colorCardBg.copy(alpha = .7f)
-                            addFontSize = 16
-                            selectionAddColor = viewModel.transparentValue()
-                        }
-                        false -> {
-                            passFontSize = 16
-                            selectionPassColor = viewModel.transparentValue()
-                            addFontSize = 28
-                            selectionAddColor = card.cardColor.colorCardBg.copy(alpha = .7f)
-                        }
-                        else -> {
-                            passFontSize = 16
-                            selectionPassColor = viewModel.transparentValue()
-                            addFontSize = 16
-                            selectionAddColor = viewModel.transparentValue()
-                        }
-                    }
-
-                }
-            )
-        }
-
+@Composable
+fun SelectionShade(
+    modifier: Modifier = Modifier,
+    selectionColor: Color,
+    viewModel: MainViewModel = viewModel(),
+    visibility: Boolean
+) {
+    Row(modifier) {
         AnimatedVisibility(
-            visible = viewModel.loadingState.value,
+            visible = visibility,
             enter = fadeIn(animationSpec = tween(durationMillis = 500)),
             exit = fadeOut(animationSpec = tween(durationMillis = 500))
         ) {
-            CircularProgressIndicator(color = progressBarColor)
+            Box(
+                Modifier
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                viewModel.transparentValue(),
+                                selectionColor
+                            )
+                        )
+                    )
+                    .padding(20.dp)
+                    .fillMaxSize()
+            )
         }
     }
-
 }
 
 @Composable
@@ -287,7 +304,7 @@ fun CardView(
     modifier: Modifier = Modifier,
     cardState: State<Boolean?>,
     onSelected: (isPass: Boolean) -> Unit,
-    onDragSelect: (isPass: Boolean?) -> Unit,
+    onDragSelect: (selection: Int) -> Unit,
     onRemoveCompleted: () -> Unit,
     onLoadCompleted: () -> Unit
 ) {
@@ -304,6 +321,7 @@ fun CardView(
     val scaleAnim by animateFloatAsState(targetValue = scale, finishedListener = {
         if (it == 0f) {
             onRemoveCompleted()
+            onDragSelect(IDLE_SELECTION)
         }
     })
 
@@ -393,15 +411,15 @@ fun CardView(
                                 scale = .3f
 
                                 if (offsetX >= 200)
-                                    onDragSelect(false)
+                                    onDragSelect(ADD_SELECTION)
 
                                 if (offsetX <= -200)
-                                    onDragSelect(true)
+                                    onDragSelect(PASS_SELECTION)
 
                             } else {
                                 scale = 1f
 
-                                onDragSelect(null)
+                                onDragSelect(IDLE_SELECTION)
                             }
                         }
                     }

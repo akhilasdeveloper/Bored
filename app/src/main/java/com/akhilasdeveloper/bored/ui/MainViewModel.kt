@@ -14,6 +14,8 @@ import com.akhilasdeveloper.bored.ui.theme.colorCardSecond
 import com.akhilasdeveloper.bored.ui.theme.colorCardSecondFg
 import com.akhilasdeveloper.bored.ui.theme.colorMain
 import com.akhilasdeveloper.bored.ui.theme.colorMainLight
+import com.akhilasdeveloper.bored.util.Constants
+import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -31,6 +33,12 @@ class MainViewModel
     val cardStates = mutableListOf<MutableState<Boolean?>>()
     val loadingState = mutableStateOf(false)
     private var cardLoadCompletedState = true
+
+    var passFontSize = mutableStateOf(16)
+    var passVisibility = mutableStateOf(false)
+    var addFontSize = mutableStateOf(16)
+    var addVisibility = mutableStateOf(false)
+
 
     var isLightTheme = true
 
@@ -134,6 +142,29 @@ class MainViewModel
             Color.White
         }
     fun transparentValue() = if (!isLightTheme) colorMain.copy(alpha = 0f) else colorMainLight.copy(alpha = 0f)
+
+    fun setDragSelectState(selection:Int){
+        when (selection) {
+            Constants.PASS_SELECTION -> {
+                passFontSize.value = 28
+                addFontSize.value = 16
+                passVisibility.value = true
+                addVisibility.value = false
+            }
+            Constants.ADD_SELECTION -> {
+                passFontSize.value = 16
+                addFontSize.value = 28
+                passVisibility.value = false
+                addVisibility.value = true
+            }
+            else -> {
+                passFontSize.value = 16
+                addFontSize.value = 16
+                passVisibility.value = false
+                addVisibility.value = false
+            }
+        }
+    }
 }
 
 
