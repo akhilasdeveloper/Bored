@@ -1,6 +1,5 @@
 package com.akhilasdeveloper.bored.ui
 
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -10,12 +9,11 @@ import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardColor
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
-import com.akhilasdeveloper.bored.ui.theme.colorCardSecond
-import com.akhilasdeveloper.bored.ui.theme.colorCardSecondFg
-import com.akhilasdeveloper.bored.ui.theme.colorMain
-import com.akhilasdeveloper.bored.ui.theme.colorMainLight
+import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
+import com.akhilasdeveloper.bored.util.Constants.ADD_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
+import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -30,15 +28,20 @@ class MainViewModel
 ) : ViewModel() {
 
     val cards = mutableStateListOf<CardDao>()
-    val cardStates = mutableListOf<MutableState<Boolean?>>()
+    val cardStates = mutableListOf<MutableState<Int>>()
     val loadingState = mutableStateOf(false)
     private var cardLoadCompletedState = true
 
-    var passFontSize = mutableStateOf(16)
-    var passVisibility = mutableStateOf(false)
-    var addFontSize = mutableStateOf(16)
-    var addVisibility = mutableStateOf(false)
+    var passSelected = mutableStateOf(false)
+    var addSelected = mutableStateOf(false)
 
+    var progressBarColor = mutableStateOf(accentColor)
+    var systemBarColor = mutableStateOf(accentColor)
+    var systemBarColorFg = mutableStateOf(colorMain)
+    var systemBarSecondColor = mutableStateOf(accentColor)
+    var systemBarSecondColorFg = mutableStateOf(colorSecondFg)
+    var selectionColor = mutableStateOf(transparentValue())
+    var selectionColorFg = mutableStateOf(transparentValue())
 
     var isLightTheme = true
 
@@ -54,7 +57,8 @@ class MainViewModel
                                     (data as BoredApiResponse).let {
                                         generateCardDaoFromResponse(it).let { cardDao ->
                                             cards.add(cardDao)
-                                            cardStates.add(mutableStateOf(null))
+                                            cardStates.add(mutableStateOf(IDLE_SELECTION))
+                                            setCurrentCard(cardDao)
                                         }
                                     }
                                 }
@@ -71,6 +75,12 @@ class MainViewModel
                     .launchIn(this)
             }
         }
+    }
+
+    private fun setCurrentCard(cardDao: CardDao) {
+        progressBarColor.value = cardDao.cardColor.colorCardBg
+        selectionColor.value = cardDao.cardColor.colorCardBg
+        selectionColorFg.value = cardDao.cardColor.colorCardFg
     }
 
     fun removeCard(cardDao: CardDao) {
@@ -145,24 +155,52 @@ class MainViewModel
 
     fun setDragSelectState(selection:Int){
         when (selection) {
-            Constants.PASS_SELECTION -> {
-                passFontSize.value = 28
-                addFontSize.value = 16
-                passVisibility.value = true
-                addVisibility.value = false
+            PASS_SELECTION -> {
+                addSelected.value = false
+                passSelected.value = true
             }
-            Constants.ADD_SELECTION -> {
-                passFontSize.value = 16
-                addFontSize.value = 28
-                passVisibility.value = false
-                addVisibility.value = true
+            ADD_SELECTION -> {
+                addSelected.value = true
+                passSelected.value = false
             }
             else -> {
-                passFontSize.value = 16
-                addFontSize.value = 16
-                passVisibility.value = false
-                addVisibility.value = false
+                addSelected.value = false
+                passSelected.value = false
             }
+        }
+    }
+
+    fun setIsLightTheme(isLight:Boolean){
+        isLightTheme = isLight
+        systemBarColor.value = if (isLight) colorMainLight else colorMain
+        systemBarColorFg.value = if (isLight) colorMain else colorMainLight
+        systemBarSecondColor.value = if (isLight) colorSecondLight else colorSecond
+        systemBarSecondColorFg.value = if (isLight) colorSecondLightFg else colorSecondFg
+    }
+
+    fun passSelected(){
+        if (getCardLoadingCompletedState()) {
+            cardStates.last().value = PASS_SELECTION
+            getRandomActivity()
+        }
+    }
+
+    fun addSelected(){
+        if (getCardLoadingCompletedState()) {
+            cardStates.last().value = ADD_SELECTION
+            getRandomActivity()
+        }
+    }
+
+    fun removeCompleted(card: CardDao) {
+        removeCard(card)
+        getRandomActivity()
+    }
+
+    fun onSelected(index:Int,selection: Int) {
+        if(cardStates.size > index) {
+            cardStates[index].value = selection
+            getRandomActivity()
         }
     }
 }

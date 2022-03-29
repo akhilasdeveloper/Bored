@@ -69,6 +69,7 @@ dependencies {
     def hilt_version = '2.41'
     def timber_version = '4.7.1'
     def retrofit_version = '2.9.0'
+    def nav_version = "2.4.1"
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
@@ -98,9 +99,10 @@ dependencies {
     //Retrofit
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
-
     implementation 'com.squareup.okhttp3:logging-interceptor:3.8.0'
 
     //SystemUI Controller for Compose
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.23.1"
+
+    implementation "androidx.navigation:navigation-compose:$nav_version"
 }
