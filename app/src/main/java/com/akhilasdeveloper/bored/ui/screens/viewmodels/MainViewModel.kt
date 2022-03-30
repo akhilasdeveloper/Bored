@@ -1,4 +1,4 @@
-package com.akhilasdeveloper.bored.ui
+package com.akhilasdeveloper.bored.ui.screens.viewmodels
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
@@ -8,9 +8,12 @@ import com.akhilasdeveloper.bored.api.response.ApiResponse
 import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardColor
 import com.akhilasdeveloper.bored.data.CardDao
+import com.akhilasdeveloper.bored.data.CategoryColorItem
+import com.akhilasdeveloper.bored.data.mapper.BoredResponseMapper
+import com.akhilasdeveloper.bored.data.mapper.BoredTableMapper
+import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
 import com.akhilasdeveloper.bored.ui.theme.*
-import com.akhilasdeveloper.bored.util.Constants
 import com.akhilasdeveloper.bored.util.Constants.ADD_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
@@ -35,13 +38,11 @@ class MainViewModel
     var passSelected = mutableStateOf(false)
     var addSelected = mutableStateOf(false)
 
-    var progressBarColor = mutableStateOf(accentColor)
     var systemBarColor = mutableStateOf(accentColor)
-    var systemBarColorFg = mutableStateOf(colorMain)
+    var systemBarColorFg = mutableStateOf(colorMainFg)
     var systemBarSecondColor = mutableStateOf(accentColor)
     var systemBarSecondColorFg = mutableStateOf(colorSecondFg)
-    var selectionColor = mutableStateOf(transparentValue())
-    var selectionColorFg = mutableStateOf(transparentValue())
+    var categoryColor = mutableStateOf(CategoryColorItem())
 
     var isLightTheme = true
 
@@ -78,9 +79,9 @@ class MainViewModel
     }
 
     private fun setCurrentCard(cardDao: CardDao) {
-        progressBarColor.value = cardDao.cardColor.colorCardBg
-        selectionColor.value = cardDao.cardColor.colorCardBg
-        selectionColorFg.value = cardDao.cardColor.colorCardFg
+        CategoryMapper().toSourceFromDestination(cardDao.type).categoryColor.let { color ->
+            categoryColor.value = if (isLightTheme) color.colorLight else color.colorDark
+        }
     }
 
     fun removeCard(cardDao: CardDao) {
@@ -95,62 +96,18 @@ class MainViewModel
         }
     }
 
-    private fun generateCardDaoFromResponse(boredApiResponse: BoredApiResponse) = CardDao(
-        activityName = boredApiResponse.activity,
-        link = boredApiResponse.link,
-        price = boredApiResponse.price,
-        participants = boredApiResponse.participants,
-        type = boredApiResponse.type,
-        accessibility = boredApiResponse.accessibility,
-        cardColor = getRandomCardColor()
-    )
+    private fun generateCardDaoFromResponse(boredApiResponse: BoredApiResponse) =
+        BoredResponseMapper().fromSourceToDestination(boredApiResponse)
 
     fun setCardLoadingCompletedState(state: Boolean) {
         cardLoadCompletedState = state
     }
 
-    fun getCardLoadingCompletedState() = cardLoadCompletedState
-
-    private fun getRandomCardColor(): CardColor {
-        val color = generateRandomColor()
-        val colorFg = getForegroundColor(color = color)
-        val colorSecond = getColorSecond(color)
-        val colorSecondFg = getForegroundColor(colorSecond)
-
-        return CardColor(
-            colorCardBg = color,
-            colorCardFg = colorFg,
-            colorCardSecondBg = colorSecond,
-            colorCardSecondFg = colorSecondFg
-        )
-    }
-
-    private fun generateRandomColor() = Color(
-        red = generateRandomColorValue(),
-        blue = generateRandomColorValue(),
-        green = generateRandomColorValue()
-    )
-
-    private fun generateRandomColorValue() = if(isLightTheme) (100..254).random() else (50..180).random()
-
     private fun calculateBrightness(color: Color) =
         ((color.red * 299) + (color.green * 587) + (color.blue * 114)) / 1000
 
-    fun isLightColor(color: Color, threshold:Float = 0.7f) = calculateBrightness(color = color) >= threshold
+    fun isLightColor(color: Color, threshold:Float = 0.6f) = calculateBrightness(color = color) >= threshold
 
-    private fun getForegroundColor(color: Color): Color =
-        if (isLightColor(color = color)) {
-            colorCardSecond
-        } else {
-            Color.White
-        }
-
-    private fun getColorSecond(color: Color): Color =
-        if (isLightColor(color = color, threshold = 0.5f)) {
-            colorCardSecond
-        } else {
-            Color.White
-        }
     fun transparentValue() = if (!isLightTheme) colorMain.copy(alpha = 0f) else colorMainLight.copy(alpha = 0f)
 
     fun setDragSelectState(selection:Int){
@@ -173,23 +130,17 @@ class MainViewModel
     fun setIsLightTheme(isLight:Boolean){
         isLightTheme = isLight
         systemBarColor.value = if (isLight) colorMainLight else colorMain
-        systemBarColorFg.value = if (isLight) colorMain else colorMainLight
+        systemBarColorFg.value = if (isLight) colorMainLightFg else colorMainFg
         systemBarSecondColor.value = if (isLight) colorSecondLight else colorSecond
         systemBarSecondColorFg.value = if (isLight) colorSecondLightFg else colorSecondFg
     }
 
     fun passSelected(){
-        if (getCardLoadingCompletedState()) {
-            cardStates.last().value = PASS_SELECTION
-            getRandomActivity()
-        }
+        onSelected(cardStates.size - 1,selection = PASS_SELECTION)
     }
 
     fun addSelected(){
-        if (getCardLoadingCompletedState()) {
-            cardStates.last().value = ADD_SELECTION
-            getRandomActivity()
-        }
+        onSelected(cardStates.size - 1,selection = ADD_SELECTION)
     }
 
     fun removeCompleted(card: CardDao) {
@@ -198,9 +149,18 @@ class MainViewModel
     }
 
     fun onSelected(index:Int,selection: Int) {
-        if(cardStates.size > index) {
+        if(cardStates.size > index && cardLoadCompletedState) {
             cardStates[index].value = selection
+            saveCard(card = cards[index], selection = selection)
             getRandomActivity()
+        }
+    }
+
+    private fun saveCard(card: CardDao, selection: Int) {
+        viewModelScope.launch {
+            boredApiRepository.insertActivity(
+                boredTable = BoredTableMapper(state = selection).toSourceFromDestination(destination = card)
+            )
         }
     }
 }

@@ -1,12 +1,17 @@
 package com.akhilasdeveloper.bored.di
 
+import android.content.Context
+import androidx.room.Room
 import com.akhilasdeveloper.bored.api.BoredApiService
+import com.akhilasdeveloper.bored.db.BoredDatabase
 import com.akhilasdeveloper.bored.util.Constants.BASE_URL
+import com.akhilasdeveloper.bored.util.Constants.BORED_DATABASE_NAME
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -55,4 +60,17 @@ object AppModule {
         return OkHttpClient.Builder().addInterceptor(logging).build()
     }
 
+    @Singleton
+    @Provides
+    fun provideBoredDatabase(
+        @ApplicationContext app: Context
+    ) = Room.databaseBuilder(
+        app,
+        BoredDatabase::class.java,
+        BORED_DATABASE_NAME
+    ).fallbackToDestructiveMigration().build()
+
+    @Singleton
+    @Provides
+    fun provideBoredDao(db: BoredDatabase) = db.getBoredDao()
 }

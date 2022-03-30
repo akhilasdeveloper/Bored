@@ -31,23 +31,23 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
-import com.akhilasdeveloper.bored.ui.MainViewModel
+import com.akhilasdeveloper.bored.data.CategoryColorItem
+import com.akhilasdeveloper.bored.ui.screens.viewmodels.MainViewModel
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 
-@Preview(showBackground = true)
 @Composable
-fun Greeting(viewModel: MainViewModel = viewModel()) {
+fun HomeScreen(viewModel: MainViewModel = viewModel()) {
 
     val cardStates = viewModel.cardStates
     val cards = viewModel.cards
+    val categoryColor = viewModel.categoryColor.value
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -65,7 +65,9 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                 text = "Pass",
                 isSelected = viewModel.passSelected.value,
                 modifier = Modifier.weight(1f),
-                viewModel = viewModel
+                accent = categoryColor.colorBg,
+                accentFg = viewModel.systemBarColorFg.value,
+                transparentValue = viewModel.transparentValue()
             ) {
                 viewModel.passSelected()
             }
@@ -73,7 +75,9 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                 text = "Add",
                 isSelected = viewModel.addSelected.value,
                 modifier = Modifier.weight(1f),
-                viewModel = viewModel
+                accent = categoryColor.colorBg,
+                accentFg = viewModel.systemBarColorFg.value,
+                transparentValue = viewModel.transparentValue()
             ) {
                 viewModel.addSelected()
             }
@@ -102,12 +106,13 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
                     },
                     onDragSelect = {
                         viewModel.setDragSelectState(it)
-                    }
+                    },
+                    categoryColor = categoryColor
                 )
             }
 
             LoadingProgress(
-                color = viewModel.progressBarColor.value,
+                color = categoryColor.colorBg,
                 visibility = viewModel.loadingState.value
             )
         }
@@ -119,19 +124,21 @@ fun Greeting(viewModel: MainViewModel = viewModel()) {
 fun SelectionButton(
     modifier: Modifier = Modifier,
     text: String,
-    viewModel: MainViewModel = viewModel(),
     isSelected: Boolean = false,
+    transparentValue: Color,
+    accent: Color,
+    accentFg: Color,
     onClicked: () -> Unit
 ) {
     var fontSize by remember { mutableStateOf(selectionDeselectedFontSize) }
-    var selectionColor by remember { mutableStateOf(viewModel.transparentValue()) }
+    var selectionColor by remember { mutableStateOf(transparentValue) }
     val animFontSize by animateIntAsState(targetValue = fontSize)
     val animSelectionColor by animateColorAsState(targetValue = selectionColor)
 
     SideEffect {
         fontSize = if (isSelected) selectionSelectedFontSize else selectionDeselectedFontSize
         selectionColor =
-            if (isSelected) viewModel.selectionColor.value else viewModel.transparentValue()
+            if (isSelected) accent else transparentValue
     }
 
     Box(
@@ -140,7 +147,7 @@ fun SelectionButton(
             .background(
                 animSelectionColor.copy(alpha = .3f)
             )
-            .clickable(indication = rememberRipple(color = viewModel.selectionColor.value),
+            .clickable(indication = rememberRipple(color = accent),
                 interactionSource = remember { MutableInteractionSource() }) {
                 onClicked()
             },
@@ -149,7 +156,7 @@ fun SelectionButton(
     {
         CardSecondText(
             text = text,
-            textColor = viewModel.systemBarColorFg.value,
+            textColor = accentFg,
             fontSize = animFontSize.sp,
             modifier = Modifier.padding(20.dp)
         )
@@ -171,11 +178,13 @@ fun LoadingProgress(visibility: Boolean, color: Color) {
 fun CardView(
     cardDao: CardDao,
     modifier: Modifier = Modifier,
-    cardState: State<Int>,
-    onSelected: (selection: Int) -> Unit,
-    onDragSelect: (selection: Int) -> Unit,
-    onRemoveCompleted: () -> Unit,
-    onLoadCompleted: () -> Unit
+    cardState: State<Int> = mutableStateOf(Constants.IDLE_SELECTION),
+    onSelected: ((selection: Int) -> Unit)? = null,
+    onDragSelect: ((selection: Int) -> Unit)? = null,
+    onRemoveCompleted: (() -> Unit)? = null,
+    onLoadCompleted: (() -> Unit)? = null,
+    enableInteraction: Boolean = true,
+    categoryColor: CategoryColorItem = CategoryColorItem()
 ) {
 
     var offsetX by remember { mutableStateOf(0f) }
@@ -189,18 +198,18 @@ fun CardView(
     val offsetYAnim by animateFloatAsState(targetValue = offsetY)
     val scaleAnim by animateFloatAsState(targetValue = scale, finishedListener = {
         if (it == 0f) {
-            onRemoveCompleted()
-            onDragSelect(Constants.IDLE_SELECTION)
+            onRemoveCompleted?.invoke()
+            onDragSelect?.invoke(Constants.IDLE_SELECTION)
         }
     })
 
     var moreIsVisible by remember { mutableStateOf(false) }
-    val cardIsVisible = remember { MutableTransitionState(false) }
-        .apply { targetState = true }
+    val cardIsVisible = if (enableInteraction) remember { MutableTransitionState(false) }
+        .apply { targetState = true } else remember { MutableTransitionState(true) }
 
     LaunchedEffect(key1 = true) {
         delay(500)
-        onLoadCompleted()
+        onLoadCompleted?.invoke()
     }
 
     cardState.value.let {
@@ -242,8 +251,7 @@ fun CardView(
     ) {
         Card(
             shape = RoundedCornerShape(15.dp),
-            backgroundColor = cardDao.cardColor.colorCardBg,
-            elevation = 5.dp,
+            backgroundColor = categoryColor.colorBg,
             modifier = modifier
                 .offset {
                     if (isAnimate) IntOffset(
@@ -254,50 +262,52 @@ fun CardView(
                 }
                 .scale(scaleAnim)
                 .pointerInput(Unit) {
-                    detectDragGestures(onDragEnd = {
+                    if (enableInteraction) {
+                        detectDragGestures(onDragEnd = {
 
-                        isAnimate = true
+                            isAnimate = true
 
-                        if (offsetX >= 200) {
-                            onSelected(Constants.ADD_SELECTION)
-                            isFinished = true
-                        }
+                            if (offsetX >= 200) {
+                                onSelected?.invoke(Constants.ADD_SELECTION)
+                                isFinished = true
+                            }
 
-                        if (offsetX <= -200) {
-                            onSelected(Constants.PASS_SELECTION)
-                            isFinished = true
-                        }
+                            if (offsetX <= -200) {
+                                onSelected?.invoke(Constants.PASS_SELECTION)
+                                isFinished = true
+                            }
 
-                        if (!isFinished) {
-                            offsetX = 0f
-                            offsetY = 0f
-                        }
+                            if (!isFinished) {
+                                offsetX = 0f
+                                offsetY = 0f
+                            }
 
-                    }) { change, dragAmount ->
+                        }) { change, dragAmount ->
 
-                        change.consumeAllChanges()
+                            change.consumeAllChanges()
 
-                        isAnimate = false
+                            isAnimate = false
 
-                        if (!isFinished) {
-                            offsetX += dragAmount.x * scale
-                            if (offsetY + (dragAmount.y * scale) >= 0)
-                                offsetY += dragAmount.y * scale
+                            if (!isFinished) {
+                                offsetX += dragAmount.x * scale
+                                if (offsetY + (dragAmount.y * scale) >= 0)
+                                    offsetY += dragAmount.y * scale
 
 
-                            if (offsetX >= 200 || offsetX <= -200) {
-                                scale = .3f
+                                if (offsetX >= 200 || offsetX <= -200) {
+                                    scale = .3f
 
-                                if (offsetX >= 200)
-                                    onDragSelect(Constants.ADD_SELECTION)
+                                    if (offsetX >= 200)
+                                        onDragSelect?.invoke(Constants.ADD_SELECTION)
 
-                                if (offsetX <= -200)
-                                    onDragSelect(Constants.PASS_SELECTION)
+                                    if (offsetX <= -200)
+                                        onDragSelect?.invoke(Constants.PASS_SELECTION)
 
-                            } else {
-                                scale = 1f
+                                } else {
+                                    scale = 1f
 
-                                onDragSelect(Constants.IDLE_SELECTION)
+                                    onDragSelect?.invoke(Constants.IDLE_SELECTION)
+                                }
                             }
                         }
                     }
@@ -307,7 +317,7 @@ fun CardView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
-                        indication = rememberRipple(color = cardDao.cardColor.colorCardFg),
+                        indication = rememberRipple(color = categoryColor.colorFg),
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = {
                             moreIsVisible = !moreIsVisible
@@ -324,7 +334,7 @@ fun CardView(
                     cardDao.activityName?.let {
                         CardPrimaryText(
                             activityName = it,
-                            textColor = cardDao.cardColor.colorCardFg
+                            textColor = categoryColor.colorFg
                         )
                     }
                 }
@@ -332,11 +342,12 @@ fun CardView(
                     visible = moreIsVisible,
                     enter = expandVertically(animationSpec = tween(durationMillis = 500)),
                     exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
-                    modifier = Modifier.background(cardDao.cardColor.colorCardSecondBg)
+                    modifier = Modifier.background(categoryColor.colorSecondBg)
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreContent(
-                        cardDao = cardDao
+                        cardDao = cardDao,
+                        categoryColor = categoryColor
                     )
                 }
 
@@ -365,7 +376,8 @@ fun CardSecondText(
     modifier: Modifier = Modifier,
     text: String?,
     textColor: Color,
-    fontSize: TextUnit = secondaryFontSize.sp
+    fontSize: TextUnit = secondaryFontSize.sp,
+    textAlign: TextAlign = TextAlign.Center
 ) {
     AnimatedVisibility(
         visible = !text.isNullOrEmpty(),
@@ -381,7 +393,7 @@ fun CardSecondText(
                     fontWeight = FontWeight.Bold,
                     fontSize = fontSize
                 ),
-                textAlign = TextAlign.Center,
+                textAlign = textAlign,
             )
         }
     }
@@ -389,7 +401,8 @@ fun CardSecondText(
 
 @Composable
 fun MoreContent(
-    cardDao: CardDao
+    cardDao: CardDao,
+    categoryColor: CategoryColorItem
 ) {
 
     Column(
@@ -398,14 +411,14 @@ fun MoreContent(
             .padding(20.dp),
         horizontalAlignment = Alignment.Start,
     ) {
-        CardSecondText(text = cardDao.link, textColor = cardDao.cardColor.colorCardSecondFg)
+        CardSecondText(text = cardDao.link, textColor = categoryColor.colorSecondFg)
         CardSecondText(
             text = "Type : ${cardDao.type}",
-            textColor = cardDao.cardColor.colorCardSecondFg
+            textColor = categoryColor.colorSecondFg
         )
         CardSecondText(
             text = "Participants : ${cardDao.participants}",
-            textColor = cardDao.cardColor.colorCardSecondFg
+            textColor = categoryColor.colorSecondFg
         )
         Spacer(modifier = Modifier.padding(10.dp))
         Row(
@@ -419,9 +432,9 @@ fun MoreContent(
             ) {
                 LinearProgressBar(
                     percentage = cardDao.accessibility,
-                    color = cardDao.cardColor.colorCardBg,
+                    color = categoryColor.colorBg,
                     text = "Accessibility",
-                    fontColor = cardDao.cardColor.colorCardSecondFg
+                    fontColor = categoryColor.colorSecondFg
                 )
             }
             Box(
@@ -431,9 +444,9 @@ fun MoreContent(
             ) {
                 LinearProgressBar(
                     percentage = cardDao.price,
-                    color = cardDao.cardColor.colorCardBg,
+                    color = categoryColor.colorBg,
                     text = "Price",
-                    fontColor = cardDao.cardColor.colorCardSecondFg
+                    fontColor = categoryColor.colorSecondFg
                 )
             }
         }
