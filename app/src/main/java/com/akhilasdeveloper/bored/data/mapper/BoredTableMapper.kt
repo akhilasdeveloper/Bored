@@ -3,7 +3,7 @@ import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.db.table.BoredTable
 import com.akhilasdeveloper.bored.util.Constants
 
-class BoredTableMapper(private val createdDate:Long = System.currentTimeMillis(), private val state: Int = Constants.IDLE_SELECTION) : Mapper<BoredTable, CardDao> {
+class BoredTableMapper(private val state: Int = Constants.IDLE_SELECTION) : Mapper<BoredTable, CardDao> {
     override fun fromSourceToDestination(source: BoredTable): CardDao = CardDao(
         key = source.key,
         activityName = source.activity,
@@ -11,7 +11,10 @@ class BoredTableMapper(private val createdDate:Long = System.currentTimeMillis()
         price = source.price,
         participants = source.participants,
         type = source.type,
-        accessibility = source.accessibility
+        accessibility = source.accessibility,
+        isCompleted = source.isCompleted,
+        id = source.id,
+        createdDate = source.createdDate
     )
 
     override fun toSourceFromDestination(destination: CardDao): BoredTable = BoredTable(
@@ -22,8 +25,9 @@ class BoredTableMapper(private val createdDate:Long = System.currentTimeMillis()
         participants = destination.participants,
         type = destination.type,
         accessibility = destination.accessibility,
-        createdDate = createdDate,
-        state = state
+        createdDate = destination.createdDate,
+        state = state,
+        isCompleted = destination.isCompleted
     )
 
 }

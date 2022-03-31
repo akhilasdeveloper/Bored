@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -31,6 +33,7 @@ import com.akhilasdeveloper.bored.ui.theme.colorMainLight
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
+@ExperimentalFoundationApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -101,7 +104,8 @@ fun BottomBar(navController: NavHostController, categoryColor: CategoryColorItem
     val currentDestination = backStackEntry?.destination
     val animAccentColor = animateColorAsState(targetValue = categoryColor.colorBg)
     BottomNavigation(
-        backgroundColor = animAccentColor.value
+        backgroundColor = animAccentColor.value,
+        elevation = 0.dp
     ) {
         screens.forEach { screen ->
             AddItem(

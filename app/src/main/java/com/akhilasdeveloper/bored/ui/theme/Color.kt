@@ -11,9 +11,9 @@ val Purple700 = Color(0xFFDD205E)
 val Teal200 = Color(0xFF03DAC5)
 
 val colorMain = Color(0xFF222222)
-val colorMainFg = Color(0xFFFFFFFF)
+val colorMainFg = Color(0xFFCFCFCF)
 val colorSecond = Color(0xFF383838)
-val colorSecondFg = Color(0xFFFFFFFF)
+val colorSecondFg = Color(0xFFE2E2E2)
 
 val colorMainLight = Color(0xFFFFFFFF)
 val colorMainLightFg = Color(0xFF414141)
@@ -29,13 +29,13 @@ val colorProgressSecond = Color(0xFFEBEBEB)
 
 val categoryColor1 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFFFD5D5D),
+        colorBg = Color(0xFFF06292),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFFB84242),
+        colorBg = Color(0xFFC55279),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -44,13 +44,13 @@ val categoryColor1 = CategoryColor(
 
 val categoryColor2 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFFD3BD1F),
-        colorFg = Color(0xFF3D3D3D),
+        colorBg = Color(0xFFBA68C8),
+        colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFFA3962F),
+        colorBg = Color(0xFF8D4F97),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -59,13 +59,13 @@ val categoryColor2 = CategoryColor(
 
 val categoryColor3 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFF61C925),
+        colorBg = Color(0xFF64B5F6),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFF43851E),
+        colorBg = Color(0xFF4F8FC2),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -74,13 +74,13 @@ val categoryColor3 = CategoryColor(
 
 val categoryColor4 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFFA32FC4),
-        colorFg = Color(0xFF3D3D3D),
+        colorBg = Color(0xFF4DD0E1),
+        colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFF753583),
+        colorBg = Color(0xFF41ADBB),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -89,13 +89,13 @@ val categoryColor4 = CategoryColor(
 
 val categoryColor5 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFFC7229E),
+        colorBg = Color(0xFF81C784),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFFAD229E),
+        colorBg = Color(0xFF6EAA71),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -104,13 +104,13 @@ val categoryColor5 = CategoryColor(
 
 val categoryColor6 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFF1AC7C7),
-        colorFg = Color(0xFF3D3D3D),
+        colorBg = Color(0xFFDCE775),
+        colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFF209191),
+        colorBg = Color(0xFFB0B95E),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -119,13 +119,13 @@ val categoryColor6 = CategoryColor(
 
 val categoryColor7 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFFFF8726),
+        colorBg = Color(0xFFFFB74D),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFFB96623),
+        colorBg = Color(0xFFD89B41),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -134,13 +134,13 @@ val categoryColor7 = CategoryColor(
 
 val categoryColor8 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFF22D3C3),
+        colorBg = Color(0xFFFF8A65),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFF237C74),
+        colorBg = Color(0xFFCA6D50),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
@@ -149,13 +149,13 @@ val categoryColor8 = CategoryColor(
 
 val categoryColor9 = CategoryColor(
     CategoryColorItem(
-        colorBg = Color(0xFF3FC429),
+        colorBg = Color(0xFF7986CB),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)
     ),
     CategoryColorItem(
-        colorBg = Color(0xFF268D17),
+        colorBg = Color(0xFF606AA0),
         colorFg = Color(0xFFFFFFFF),
         colorSecondBg = Color(0xFF383838),
         colorSecondFg = Color(0xFFFFFFFF)

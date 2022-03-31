@@ -11,7 +11,10 @@ class BoredResponseMapper : Mapper<BoredApiResponse, CardDao> {
         price = source.price,
         participants = source.participants,
         type = source.type,
-        accessibility = source.accessibility
+        accessibility = source.accessibility,
+        isCompleted = false,
+        id = null,
+        createdDate = System.currentTimeMillis()
     )
 
     override fun toSourceFromDestination(destination: CardDao): BoredApiResponse = BoredApiResponse(

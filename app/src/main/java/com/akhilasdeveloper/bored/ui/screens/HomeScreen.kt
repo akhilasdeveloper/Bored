@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
@@ -62,7 +63,7 @@ fun HomeScreen(viewModel: MainViewModel = viewModel()) {
         ) {
 
             SelectionButton(
-                text = "Pass",
+                text = "Skip",
                 isSelected = viewModel.passSelected.value,
                 modifier = Modifier.weight(1f),
                 accent = categoryColor.colorBg,
@@ -72,7 +73,7 @@ fun HomeScreen(viewModel: MainViewModel = viewModel()) {
                 viewModel.passSelected()
             }
             SelectionButton(
-                text = "Add",
+                text = "TODO",
                 isSelected = viewModel.addSelected.value,
                 modifier = Modifier.weight(1f),
                 accent = categoryColor.colorBg,
@@ -377,7 +378,8 @@ fun CardSecondText(
     text: String?,
     textColor: Color,
     fontSize: TextUnit = secondaryFontSize.sp,
-    textAlign: TextAlign = TextAlign.Center
+    textAlign: TextAlign = TextAlign.Center,
+    textDecoration: TextDecoration = TextDecoration.None
 ) {
     AnimatedVisibility(
         visible = !text.isNullOrEmpty(),
@@ -391,7 +393,8 @@ fun CardSecondText(
                 style = TextStyle(
                     color = textColor,
                     fontWeight = FontWeight.Bold,
-                    fontSize = fontSize
+                    fontSize = fontSize,
+                    textDecoration = textDecoration
                 ),
                 textAlign = textAlign,
             )

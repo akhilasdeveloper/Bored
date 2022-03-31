@@ -7,7 +7,6 @@ import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "bored_table")
 data class BoredTable(
-    @PrimaryKey(autoGenerate = false)
     @SerializedName("key") @Expose val key: String,
     @SerializedName("activity") @Expose val activity: String?,
     @SerializedName("type") @Expose val type: String,
@@ -17,4 +16,8 @@ data class BoredTable(
     @SerializedName("price") @Expose val price: Float?,
     @SerializedName("createdDate") @Expose val createdDate: Long,
     @SerializedName("state") @Expose val state: Int,
-)
+    @SerializedName("isCompleted") @Expose val isCompleted: Boolean
+){
+    @PrimaryKey(autoGenerate = true)
+    @SerializedName("id") @Expose var id: Int? = null
+}
