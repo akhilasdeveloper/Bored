@@ -42,15 +42,4 @@ class ActivitiesViewModel
         }
     }
 
-    fun updatePosition(from: CardDao?, to: CardDao?){
-        from?.let {
-            to?.let {
-                val createdDate = from.createdDate
-                viewModelScope.launch {
-                    boredApiRepository.updateCreatedDate(id = from.id!!,to.createdDate)
-                    boredApiRepository.updateCreatedDate(id = to.id!!,createdDate)
-                }
-            }
-        }
-    }
 }

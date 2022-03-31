@@ -169,28 +169,18 @@ fun PassData(viewModel: ActivitiesViewModel = viewModel()) {
 @Composable
 fun AddData(viewModel: ActivitiesViewModel = viewModel()) {
 
-    val state = rememberReorderState()
-
     val lazyActivities: LazyPagingItems<CardDao> =
         viewModel.activitiesAdded.collectAsLazyPagingItems()
     LazyColumn(
-        state = state.listState,
         contentPadding = PaddingValues(1.dp),
-        verticalArrangement = Arrangement.spacedBy(1.dp),
-        modifier = Modifier.reorderable(state, { from, to ->
-            lazyActivities.move(from.index, to.index) { fromData, toData ->
-                viewModel.updatePosition(from = fromData, to = toData)
-            }
-        })
+        verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         items(items = lazyActivities, key = { it.id!! }) { item ->
             item?.let { card ->
                 ActivityItem(modifier = Modifier
                     .animateItemPlacement(
                         tween(durationMillis = 500)
-                    )
-                    .draggedItem(state.offsetByKey(item))
-                    .detectReorderAfterLongPress(state),
+                    ),
                     cardDao = card,
                     checkBoxVisibility = true,
                     onChecked = {
@@ -201,11 +191,4 @@ fun AddData(viewModel: ActivitiesViewModel = viewModel()) {
     }
 }
 
-fun <T : Any> LazyPagingItems<T>.move(
-    fromIdx: Int,
-    toIdx: Int,
-    moveData: (from: T?, to: T?) -> Unit
-) {
-    moveData(this[fromIdx], this[toIdx])
-}
 

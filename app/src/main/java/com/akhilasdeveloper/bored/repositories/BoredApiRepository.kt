@@ -51,12 +51,6 @@ class BoredApiRepository
     fun fetchAddActivities() = boredDao.getAddActivities()
     fun fetchPassActivities() = boredDao.getPassActivities()
 
-    suspend fun updateCreatedDate(id:Int, createdDate:Long){
-        withContext(Dispatchers.IO) {
-            boredDao.updateCreatedDate(id, createdDate)
-        }
-    }
-
     suspend fun updateIsCompleted(id: Int, key: String, isCompleted: Boolean) {
         withContext(Dispatchers.IO) {
             if (!isCompleted)
