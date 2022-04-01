@@ -21,14 +21,23 @@ interface BoredDao {
     @Query("UPDATE bored_table SET isCompleted = :isCompleted, createdDate = :createdDate WHERE id = :id")
     fun updateIsCompleted(id:Int, isCompleted:Boolean, createdDate:Long = System.currentTimeMillis())
 
-    @Query("SELECT count(*) FROM bored_table WHERE `key` = :key AND isCompleted = :isCompleted")
-    fun countOfNotCompletedActivities(key:String, isCompleted:Boolean = false):Int
+    @Query("UPDATE bored_table SET state = :state, isCompleted = :isCompleted, createdDate = :createdDate WHERE id = :id")
+    fun updateState(id:Int, isCompleted:Boolean = false, state: Int, createdDate:Long = System.currentTimeMillis())
 
-    @Query("UPDATE bored_table SET createdDate = :createdDate WHERE `key` = :key AND isCompleted = :isCompleted")
-    fun updateCreatedDateOfNotCompletedActivity(key:String, createdDate:Long, isCompleted:Boolean = false)
+    @Query("SELECT count(*) FROM bored_table WHERE `key` = :key AND isCompleted = :isCompleted AND state = :state")
+    fun countOfNotCompletedTODOActivities(key:String, isCompleted:Boolean = false, state:Int = Constants.ADD_SELECTION):Int
 
-    @Query("DELETE FROM bored_table WHERE `key` = :key AND isCompleted = :isCompleted")
-    fun deleteAllNotCompletedActivity(key:String, isCompleted:Boolean = false)
+    @Query("UPDATE bored_table SET createdDate = :createdDate WHERE `key` = :key AND isCompleted = :isCompleted AND state = :state")
+    fun updateCreatedDateOfNotCompletedTODOActivity(key:String, createdDate:Long, isCompleted:Boolean = false, state:Int = Constants.ADD_SELECTION)
+
+    @Query("DELETE FROM bored_table WHERE `key` = :key AND isCompleted = :isCompleted AND state = :state")
+    fun deleteAllNotCompletedTODOActivities(key:String, isCompleted:Boolean = false, state:Int = Constants.ADD_SELECTION)
+
+    @Query("DELETE FROM bored_table WHERE id = :id")
+    fun deleteActivityByID(id: Int)
+
+    @Query("DELETE FROM bored_table WHERE `key` = :key AND state = :state")
+    fun deleteAllSkippedActivitiesByKey(key:String, state:Int = Constants.PASS_SELECTION)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun addActivity(boredTable: BoredTable)

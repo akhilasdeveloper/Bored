@@ -129,8 +129,8 @@ class MainViewModel
 
     fun setIsLightTheme(isLight:Boolean){
         isLightTheme = isLight
-        systemBarColor.value = if (isLight) colorMainLight else colorMain
-        systemBarColorFg.value = if (isLight) colorMainLightFg else colorMainFg
+        systemBarColor.value = if (isLight) colorSecondLight else colorSecond
+        systemBarColorFg.value = if (isLight) colorSecondLightFg else colorSecondFg
         systemBarSecondColor.value = if (isLight) colorSecondLight else colorSecond
         systemBarSecondColorFg.value = if (isLight) colorSecondLightFg else colorSecondFg
     }

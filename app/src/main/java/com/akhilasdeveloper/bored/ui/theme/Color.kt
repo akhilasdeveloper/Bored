@@ -10,14 +10,14 @@ val Purple500 = Color(0xFFDD205E)
 val Purple700 = Color(0xFFDD205E)
 val Teal200 = Color(0xFF03DAC5)
 
-val colorMain = Color(0xFF222222)
+val colorMain = Color(0xFF2A2A2A)
 val colorMainFg = Color(0xFFCFCFCF)
-val colorSecond = Color(0xFF383838)
+val colorSecond = Color(0xFF222222)
 val colorSecondFg = Color(0xFFE2E2E2)
 
 val colorMainLight = Color(0xFFFFFFFF)
 val colorMainLightFg = Color(0xFF414141)
-val colorSecondLight = Color(0xFFECECEC)
+val colorSecondLight = Color(0xFFF5F5F5)
 val colorSecondLightFg = Color(0xFF414141)
 
 val accentColor = Color(0xFFDD205E)

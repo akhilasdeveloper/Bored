@@ -66,28 +66,29 @@ class MainActivity : ComponentActivity() {
             )
 
             Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(if (isSystemInDarkTheme()) colorMain else colorMainLight)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(viewModel.systemBarColor.value),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+
+                NavHost(
+                    navController = navController,
+                    startDestination = BottomBarScreen.Home.route,
+                    Modifier.weight(1f)
                 ) {
-
-                    NavHost(
-                        navController = navController,
-                        startDestination = BottomBarScreen.Home.route,
-                        Modifier.weight(1f)
-                    ) {
-                        composable(BottomBarScreen.Home.route) {
-                            HomeScreen(viewModel = viewModel)
-                        }
-                        composable(BottomBarScreen.Activities.route) {
-                            ActivitiesScreen(viewModel = activitiesViewModel)
-                        }
-                        composable(BottomBarScreen.About.route) {
-
-                        }
+                    composable(BottomBarScreen.Home.route) {
+                        HomeScreen(viewModel = viewModel)
                     }
-                    BottomBar(navController = navController,categoryColor = categoryColor.value)
+                    composable(BottomBarScreen.Activities.route) {
+                        ActivitiesScreen(viewModel = activitiesViewModel)
+                    }
+                    composable(BottomBarScreen.About.route) {
+
+                    }
                 }
+                BottomBar(navController = navController, categoryColor = categoryColor.value)
+            }
 
         }
     }

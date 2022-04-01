@@ -1,10 +1,7 @@
 package com.akhilasdeveloper.bored.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,13 +9,14 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -36,6 +34,8 @@ import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.CategoryColorItem
+import com.akhilasdeveloper.bored.data.CategoryData
+import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
 import com.akhilasdeveloper.bored.ui.screens.viewmodels.MainViewModel
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
@@ -118,6 +118,298 @@ fun HomeScreen(viewModel: MainViewModel = viewModel()) {
             )
         }
 
+        FilterCard(categoryColor = categoryColor)
+
+    }
+}
+
+@Composable
+fun FilterCard(categoryColor: CategoryColorItem) {
+
+    val isVisible = remember { mutableStateOf(false) }
+    val cornerRadius = remember { mutableStateOf(100.dp) }
+    val animCornerRadius = animateDpAsState(targetValue = cornerRadius.value)
+
+    val mainElevation = remember { mutableStateOf(0.dp) }
+    val animMainElevation = animateDpAsState(targetValue = mainElevation.value)
+
+    val mainIconPadding = remember { mutableStateOf(10.dp) }
+    val animMainIconPadding = animateDpAsState(targetValue = mainIconPadding.value)
+
+    val backgroundDimFactor = remember { mutableStateOf(0f) }
+    val animBackgroundDimFactor = animateFloatAsState(targetValue = backgroundDimFactor.value)
+
+
+    Box(
+        modifier = Modifier
+            .background(Color.Black.copy(alpha = animBackgroundDimFactor.value))
+            .fillMaxSize()
+            .padding(20.dp).let {
+                return@let if (isVisible.value) {
+                    it.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) {
+                        cornerRadius.value = 100.dp
+                        mainElevation.value = 0.dp
+                        mainIconPadding.value = 10.dp
+                        backgroundDimFactor.value = 0f
+                        isVisible.value = !isVisible.value
+                    }
+                } else it
+            },
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Card(
+            shape = RoundedCornerShape(animCornerRadius.value),
+            backgroundColor = categoryColor.colorBg,
+            elevation = animMainElevation.value
+        ) {
+            Column {
+
+                Icon(
+                    imageVector = Icons.Rounded.FilterAlt,
+                    contentDescription = "Category Icon",
+                    tint = categoryColor.colorFg,
+                    modifier = Modifier
+                        .clickable(
+                            indication = rememberRipple(color = categoryColor.colorFg),
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = {
+                                cornerRadius.value = if (isVisible.value) {
+                                    100.dp
+                                } else {
+                                    10.dp
+                                }
+                                mainElevation.value = if (isVisible.value) {
+                                    0.dp
+                                } else {
+                                    100.dp
+                                }
+                                mainIconPadding.value = if (isVisible.value) {
+                                    10.dp
+                                } else {
+                                    20.dp
+                                }
+
+                                backgroundDimFactor.value = if (isVisible.value) {
+                                    0f
+                                } else {
+                                    .5f
+                                }
+                                isVisible.value = !isVisible.value
+                            }
+                        )
+                        .padding(animMainIconPadding.value)
+                )
+
+                AnimatedVisibility(
+                    visible = isVisible.value,
+                    enter = expandIn(animationSpec = tween(durationMillis = 500)),
+                    exit = shrinkOut(animationSpec = tween(durationMillis = 500)),
+                    modifier = Modifier.background(categoryColor.colorSecondFg)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = true,
+                                onCheckedChange = {
+                                },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = categoryColor.colorSecondFg,
+                                    uncheckedColor = categoryColor.colorSecondBg,
+                                    checkmarkColor = categoryColor.colorBg
+                                ),
+                                modifier = Modifier
+                                    .padding(
+                                        top = 8.dp,
+                                        bottom = 8.dp
+                                    ),
+                            )
+                            CardSecondText(
+                                text = "Random",
+                                textColor = categoryColor.colorSecondBg
+                            )
+
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = true,
+                                    onCheckedChange = {
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = categoryColor.colorSecondFg,
+                                        uncheckedColor = categoryColor.colorSecondBg,
+                                        checkmarkColor = categoryColor.colorBg
+                                    ),
+                                    modifier = Modifier
+                                        .padding(
+                                            top = 8.dp,
+                                            bottom = 8.dp
+                                        ),
+                                )
+                                CardSecondText(
+                                    text = "Type",
+                                    textColor = categoryColor.colorSecondBg
+                                )
+                            }
+
+                            Icon(
+                                imageVector = CategoryData.Education.icon,
+                                contentDescription = "Category Icon",
+                                tint = categoryColor.colorFg,
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(color = categoryColor.colorBg)
+                                    .padding(5.dp)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = true,
+                                    onCheckedChange = {
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = categoryColor.colorSecondFg,
+                                        uncheckedColor = categoryColor.colorSecondBg,
+                                        checkmarkColor = categoryColor.colorBg
+                                    ),
+                                    modifier = Modifier
+                                        .padding(
+                                            top = 8.dp,
+                                            bottom = 8.dp
+                                        ),
+                                )
+                                CardSecondText(
+                                    text = "Participants",
+                                    textColor = categoryColor.colorSecondBg
+                                )
+                            }
+
+                            CardSecondText(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(categoryColor.colorBg)
+                                    .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
+                                text = "3",
+                                textColor = categoryColor.colorFg
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = true,
+                                    onCheckedChange = {
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = categoryColor.colorSecondFg,
+                                        uncheckedColor = categoryColor.colorSecondBg,
+                                        checkmarkColor = categoryColor.colorBg
+                                    ),
+                                    modifier = Modifier
+                                        .padding(
+                                            top = 8.dp,
+                                            bottom = 8.dp
+                                        ),
+                                )
+                                CardSecondText(
+                                    text = "Price Range",
+                                    textColor = categoryColor.colorSecondBg
+                                )
+                            }
+
+                            CardSecondText(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(categoryColor.colorBg)
+                                    .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
+                                text = "50%",
+                                textColor = categoryColor.colorFg
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = true,
+                                    onCheckedChange = {
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = categoryColor.colorSecondFg,
+                                        uncheckedColor = categoryColor.colorSecondBg,
+                                        checkmarkColor = categoryColor.colorBg
+                                    ),
+                                    modifier = Modifier
+                                        .padding(
+                                            top = 8.dp,
+                                            bottom = 8.dp
+                                        ),
+                                )
+                                CardSecondText(
+                                    text = "Accessibility Range",
+                                    textColor = categoryColor.colorSecondBg
+                                )
+                            }
+
+                            CardSecondText(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(categoryColor.colorBg)
+                                    .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
+                                text = "20%",
+                                textColor = categoryColor.colorFg
+                            )
+
+                        }
+
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -188,6 +480,8 @@ fun CardView(
     categoryColor: CategoryColorItem = CategoryColorItem()
 ) {
 
+    val categoryData by derivedStateOf { CategoryMapper().toSourceFromDestination(cardDao.type) }
+
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
     var scale by remember { mutableStateOf(1f) }
@@ -209,7 +503,7 @@ fun CardView(
         .apply { targetState = true } else remember { MutableTransitionState(true) }
 
     LaunchedEffect(key1 = true) {
-        delay(500)
+        delay(400)
         onLoadCompleted?.invoke()
     }
 
@@ -251,7 +545,7 @@ fun CardView(
         exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
     ) {
         Card(
-            shape = RoundedCornerShape(15.dp),
+            shape = RoundedCornerShape(10.dp),
             backgroundColor = categoryColor.colorBg,
             modifier = modifier
                 .offset {
@@ -326,14 +620,27 @@ fun CardView(
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
-                    contentAlignment = Alignment.Center
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Icon(
+                        imageVector = categoryData.icon,
+                        contentDescription = "Category Icon",
+                        tint = categoryColor.colorBg,
+                        modifier = Modifier
+                            .padding(end = 20.dp)
+                            .clip(RoundedCornerShape(100.dp))
+                            .background(color = categoryColor.colorFg)
+                            .padding(5.dp)
+                    )
                     cardDao.activityName?.let {
                         CardPrimaryText(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
                             activityName = it,
                             textColor = categoryColor.colorFg
                         )
@@ -360,12 +667,13 @@ fun CardView(
 
 
 @Composable
-fun CardPrimaryText(activityName: String, textColor: Color) {
+fun CardPrimaryText(modifier: Modifier, activityName: String, textColor: Color) {
     Text(
+        modifier = modifier,
         text = activityName,
         style = TextStyle(
             color = textColor,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             fontSize = cardFontSize.sp
         ),
         textAlign = TextAlign.Center
@@ -388,11 +696,11 @@ fun CardSecondText(
     ) {
         text?.let {
             Text(
-                modifier = modifier.padding(10.dp),
+                modifier = modifier,
                 text = text,
                 style = TextStyle(
                     color = textColor,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     fontSize = fontSize,
                     textDecoration = textDecoration
                 ),
@@ -414,12 +722,18 @@ fun MoreContent(
             .padding(20.dp),
         horizontalAlignment = Alignment.Start,
     ) {
-        CardSecondText(text = cardDao.link, textColor = categoryColor.colorSecondFg)
         CardSecondText(
+            modifier = Modifier.padding(12.dp),
+            text = cardDao.link,
+            textColor = categoryColor.colorSecondFg
+        )
+        CardSecondText(
+            modifier = Modifier.padding(12.dp),
             text = "Type : ${cardDao.type}",
             textColor = categoryColor.colorSecondFg
         )
         CardSecondText(
+            modifier = Modifier.padding(12.dp),
             text = "Participants : ${cardDao.participants}",
             textColor = categoryColor.colorSecondFg
         )
@@ -511,6 +825,7 @@ fun LinearProgressBar(
         }
 
         CardSecondText(
+            modifier = Modifier.padding(12.dp),
             text = "$text ${(curPercentage.value * 100).roundToInt()} %",
             textColor = fontColor,
             fontSize = fontSize
