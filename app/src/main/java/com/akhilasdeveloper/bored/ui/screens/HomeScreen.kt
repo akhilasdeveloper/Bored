@@ -825,7 +825,7 @@ fun LinearProgressBar(
         }
 
         CardSecondText(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(8.dp),
             text = "$text ${(curPercentage.value * 100).roundToInt()} %",
             textColor = fontColor,
             fontSize = fontSize
