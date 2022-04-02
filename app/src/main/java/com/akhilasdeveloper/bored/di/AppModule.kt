@@ -6,6 +6,7 @@ import com.akhilasdeveloper.bored.api.BoredApiService
 import com.akhilasdeveloper.bored.db.BoredDatabase
 import com.akhilasdeveloper.bored.util.Constants.BASE_URL
 import com.akhilasdeveloper.bored.util.Constants.BORED_DATABASE_NAME
+import com.akhilasdeveloper.bored.util.DataStoreFunctionsImpl
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -73,4 +74,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provideBoredDao(db: BoredDatabase) = db.getBoredDao()
+
+    @Singleton
+    @Provides
+    fun provideDataStoreFunctions(
+        @ApplicationContext app: Context
+    ) = DataStoreFunctionsImpl(context = app)
 }

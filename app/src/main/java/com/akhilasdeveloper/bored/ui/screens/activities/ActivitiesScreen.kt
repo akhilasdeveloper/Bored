@@ -39,10 +39,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
-import com.akhilasdeveloper.bored.ui.screens.viewmodels.ActivitiesViewModel
+import com.akhilasdeveloper.bored.ui.screens.activities.ActivitiesViewModel
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 @ExperimentalFoundationApi
@@ -69,7 +68,7 @@ fun ActivityItem(
     val isSystemDarkTheme = isSystemInDarkTheme()
     val configuration = LocalConfiguration.current
 
-    val categoryData by derivedStateOf { CategoryMapper().toSourceFromDestination(cardDao.type) }
+    val categoryData by derivedStateOf { CategoryMapper.toSourceFromDestination(cardDao.type) }
     val categoryColor by derivedStateOf { if (isSystemDarkTheme) categoryData.categoryColor.colorDark else categoryData.categoryColor.colorLight }
     val textDecoration by derivedStateOf { if (checkBoxVisibility && cardDao.isCompleted) TextDecoration.LineThrough else TextDecoration.None }
     val backgroundColor by derivedStateOf { if (isSystemDarkTheme) colorMain else colorMainLight }
@@ -290,7 +289,7 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
             item?.let { card ->
 
 
-                val categoryData by derivedStateOf { CategoryMapper().toSourceFromDestination(card.type) }
+                val categoryData by derivedStateOf { CategoryMapper.toSourceFromDestination(card.type) }
                 val categoryColor by derivedStateOf { if (isSystemDarkTheme) categoryData.categoryColor.colorDark else categoryData.categoryColor.colorLight }
                 var leftDragValue by remember {
                     mutableStateOf(0f)

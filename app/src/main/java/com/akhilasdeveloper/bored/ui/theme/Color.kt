@@ -162,4 +162,19 @@ val categoryColor9 = CategoryColor(
     ),
 )
 
+val categoryColorError = CategoryColor(
+    CategoryColorItem(
+        colorBg = Color(0xFFD50000),
+        colorFg = Color(0xFFFFFFFF),
+        colorSecondBg = Color(0xFF383838),
+        colorSecondFg = Color(0xFFFFFFFF)
+    ),
+    CategoryColorItem(
+        colorBg = Color(0xFFA20000),
+        colorFg = Color(0xFFFFFFFF),
+        colorSecondBg = Color(0xFF383838),
+        colorSecondFg = Color(0xFFFFFFFF)
+    ),
+)
+
 

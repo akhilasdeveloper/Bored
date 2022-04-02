@@ -76,4 +76,11 @@ sealed class CategoryData(
         categoryColor = categoryColor9
     )
 
+    object Invalid : CategoryData(
+        title = "None",
+        icon = Icons.Rounded.Error,
+        key = "invalid",
+        categoryColor = categoryColorError
+    )
+
 }

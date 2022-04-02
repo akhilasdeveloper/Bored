@@ -1,4 +1,4 @@
-package com.akhilasdeveloper.bored.ui.screens.viewmodels
+package com.akhilasdeveloper.bored.ui.screens.activities
 
 import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
@@ -11,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel

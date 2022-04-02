@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -26,14 +27,14 @@ import androidx.navigation.compose.rememberNavController
 import com.akhilasdeveloper.bored.data.CategoryColorItem
 import com.akhilasdeveloper.bored.ui.screens.ActivitiesScreen
 import com.akhilasdeveloper.bored.ui.screens.HomeScreen
-import com.akhilasdeveloper.bored.ui.screens.viewmodels.ActivitiesViewModel
-import com.akhilasdeveloper.bored.ui.screens.viewmodels.MainViewModel
-import com.akhilasdeveloper.bored.ui.theme.colorMain
-import com.akhilasdeveloper.bored.ui.theme.colorMainLight
+import com.akhilasdeveloper.bored.ui.screens.activities.ActivitiesViewModel
+import com.akhilasdeveloper.bored.ui.screens.homescreen.HomeViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalFoundationApi
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val viewModel: MainViewModel by viewModels()
+        val viewModel: HomeViewModel by viewModels()
         val activitiesViewModel: ActivitiesViewModel by viewModels()
         val categoryColor = viewModel.categoryColor
 
