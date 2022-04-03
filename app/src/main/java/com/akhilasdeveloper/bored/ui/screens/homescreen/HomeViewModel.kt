@@ -41,6 +41,8 @@ class HomeViewModel
     val loadingState = mutableStateOf(false)
     private var cardLoadCompletedState = true
 
+    val errorState = mutableStateOf<String?>(null)
+
     var passSelected = mutableStateOf(false)
     var addSelected = mutableStateOf(false)
 
@@ -51,6 +53,11 @@ class HomeViewModel
     var categoryColor = mutableStateOf(CategoryColorItem())
 
     var isLightTheme = true
+
+    fun getClearAndGetActivity(){
+        clearData()
+        getRandomActivity()
+    }
 
     fun getRandomActivity() {
         if (cardLoadCompletedState && cards.isEmpty()) {
@@ -70,18 +77,28 @@ class HomeViewModel
                                     }
                                 }
                                 loadingState.value = false
+                                errorState.value = null
                             }
                             is ApiResponse.Error<*> -> {
+                                errorState.value = response.message
+                                clearData()
                                 loadingState.value = false
                             }
                             is ApiResponse.Loading<*> -> {
                                 loadingState.value = true
+                                errorState.value = null
                             }
                         }
                     }
                     .launchIn(this)
             }
         }
+    }
+
+    private fun clearData() {
+        cardLoadCompletedState = true
+        cards.clear()
+        cardStates.clear()
     }
 
     private fun setCurrentCard(cardDao: CardDao) {

@@ -5,5 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface DataStoreFunctions  {
     suspend fun <T> saveValueToPreferencesStore(key: Preferences.Key<T>, value: T)
-    fun <T> getValueFromPreferencesStore(key: Preferences.Key<T>) : Flow<T?>
+    fun <T> getValueAsFlowFromPreferencesStore(key: Preferences.Key<T>) : Flow<T?>
+    suspend fun <T> getValueFromPreferencesStore(key: Preferences.Key<T>) : T?
 }

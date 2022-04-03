@@ -16,9 +16,12 @@ class DataStoreFunctionsImpl(private val context: Context) : DataStoreFunctions 
         }
     }
 
-    override fun <T> getValueFromPreferencesStore(key: Preferences.Key<T>): Flow<T?> =
+    override fun <T> getValueAsFlowFromPreferencesStore(key: Preferences.Key<T>): Flow<T?> =
         context.userPreferencesDataStore.data.map { preference ->
             preference[key]
         }
+
+    override suspend fun <T> getValueFromPreferencesStore(key: Preferences.Key<T>): T? =
+        context.userPreferencesDataStore.data.first()[key]
 
 }

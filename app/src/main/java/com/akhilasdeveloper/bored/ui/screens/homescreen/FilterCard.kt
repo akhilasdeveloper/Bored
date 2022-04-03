@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.SliderDefaults.TickAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.ripple.rememberRipple
@@ -77,24 +78,18 @@ fun FilterContents(
     viewModel: HomeViewModel,
     expandedMain: MutableState<Boolean>
 ) {
-    if (expandedMain.value) {
-        ContentDialog(
-            onDismiss = {
-                expandedMain.value = false
-            },
-            categoryColor = categoryColor,
-            title = "Filter",
-            titleIcon = Icons.Rounded.FilterAlt,
-            onOk = {
-                expandedMain.value = false
-            }, onCancel = {
-                expandedMain.value = false
-            },
-            content = {
-                MainFilterContents(categoryColor = categoryColor, viewModel = viewModel)
-            }
-        )
-    }
+    ContentDialog(
+        isExpanded = expandedMain,
+        categoryColor = categoryColor,
+        title = "Filter",
+        titleIcon = Icons.Rounded.FilterAlt,
+        onOk = {
+               viewModel.getClearAndGetActivity()
+        },
+        content = {
+            MainFilterContents(categoryColor = categoryColor, viewModel = viewModel)
+        }
+    )
 
 }
 
@@ -103,10 +98,12 @@ fun FilterContents(
 @Composable
 fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
 
-    var typeExpanded by remember { mutableStateOf(false) }
-    var participantsExpanded by remember { mutableStateOf(false) }
-    var priceRangeExpanded by remember { mutableStateOf(false) }
-    var accessibilityRangeExpanded by remember { mutableStateOf(false) }
+    val stateRandomIsChecked = viewModel.stateRandomIsChecked.collectAsState(false)
+
+    val typeExpanded = remember { mutableStateOf(false) }
+    val participantsExpanded = remember { mutableStateOf(false) }
+    val priceRangeExpanded = remember { mutableStateOf(false) }
+    val accessibilityRangeExpanded = remember { mutableStateOf(false) }
 
     Column(Modifier.background(categoryColor.colorSecondFg)) {
 
@@ -118,115 +115,89 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
         FilterItem(
             categoryColor = categoryColor,
             text = "Random",
-            isChecked = viewModel.stateRandomIsChecked.collectAsState(false).value,
+            isChecked = stateRandomIsChecked.value,
             onChecked = {
                 viewModel.setRandomIsChecked(it)
-            },
-            iconColor = categoryMainTheme.value.colorBg
+            }
         )
 
-        ExposedDropdownMenuBox(
-            expanded = typeExpanded,
-            onExpandedChange = {
-            }
-        ) {
-
+        ExposedDropDown(expanded = typeExpanded, categoryColor = categoryColor, headerItem = {
             FilterItem(
                 categoryColor = categoryColor,
                 text = "Type",
+                isDisabled = stateRandomIsChecked.value,
                 icon = categoryMainData.value.icon,
                 iconColor = categoryMainTheme.value.colorBg,
                 isChecked = viewModel.stateTypeIsChecked.collectAsState(false).value,
                 onChecked = {
                     viewModel.setTypeIsChecked(it)
                 }, onClicked = {
-                    typeExpanded = !typeExpanded
+                    typeExpanded.value = !typeExpanded.value
                 }
             )
-            ExposedDropdownMenu(
-                modifier = Modifier.background(categoryColor.colorSecondFg),
-                expanded = typeExpanded,
-                onDismissRequest = {
-                    typeExpanded = false
-                }
-            ) {
-                viewModel.types.value.forEach { category ->
+        }, dropDownItem = { contentItem ->
+            viewModel.types.value.forEach { category ->
 
-                    val categoryTheme =
-                        derivedStateOf { if (viewModel.isLightTheme) category.categoryColor.colorLight else category.categoryColor.colorDark }
+                val categoryTheme =
+                    derivedStateOf { if (viewModel.isLightTheme) category.categoryColor.colorLight else category.categoryColor.colorDark }
 
-                    DropdownMenuItem(
-                        modifier = Modifier.background(categoryTheme.value.colorSecondFg),
-                        onClick = {
-                            viewModel.setTypeValue(category.key)
-                            typeExpanded = false
-                        }) {
+                contentItem(onClick = {
+                    viewModel.setTypeValue(category.key)
+                }) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = category.icon,
+                            contentDescription = "Category Icon",
+                            tint = categoryColor.colorFg,
+                            modifier = Modifier
+                                .padding(
+                                    top = 8.dp,
+                                    bottom = 8.dp,
+                                    start = 8.dp
+                                )
+                                .clip(RoundedCornerShape(100.dp))
+                                .background(color = categoryTheme.value.colorBg)
+                                .padding(5.dp)
+                        )
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = category.icon,
-                                contentDescription = "Category Icon",
-                                tint = categoryColor.colorFg,
-                                modifier = Modifier
-                                    .padding(
-                                        top = 8.dp,
-                                        bottom = 8.dp,
-                                        start = 8.dp
-                                    )
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .background(color = categoryTheme.value.colorBg)
-                                    .padding(5.dp)
-                            )
-
-                            CardSecondText(
-                                modifier = Modifier
-                                    .padding(8.dp),
-                                text = category.title,
-                                textColor = categoryTheme.value.colorSecondBg,
-                                textAlign = TextAlign.Start
-                            )
-                        }
+                        CardSecondText(
+                            modifier = Modifier
+                                .padding(8.dp),
+                            text = category.title,
+                            textColor = categoryTheme.value.colorSecondBg,
+                            textAlign = TextAlign.Start
+                        )
                     }
                 }
             }
+        })
 
-        }
-
-
-        ExposedDropdownMenuBox(
+        ExposedDropDown(
             expanded = participantsExpanded,
-            onExpandedChange = {
-            }
-        ) {
-            FilterItem(
-                categoryColor = categoryColor,
-                text = "Participants",
-                value = "${viewModel.stateParticipantsValue.collectAsState(initial = 0).value}",
-                isChecked = viewModel.stateParticipantsIsChecked.collectAsState(false).value,
-                onChecked = {
-                    viewModel.setParticipantsIsChecked(it)
-                },
-                onClicked = {
-                    participantsExpanded = !participantsExpanded
-                }
-            )
-
-            ExposedDropdownMenu(
-                modifier = Modifier.background(categoryColor.colorSecondFg),
-                expanded = participantsExpanded,
-                onDismissRequest = {
-                    participantsExpanded = false
-                }
-            ) {
-
+            categoryColor = categoryColor,
+            headerItem = {
+                FilterItem(
+                    categoryColor = categoryColor,
+                    text = "Participants",
+                    isDisabled = stateRandomIsChecked.value,
+                    value = "${viewModel.stateParticipantsValue.collectAsState(initial = 0).value}",
+                    isChecked = viewModel.stateParticipantsIsChecked.collectAsState(false).value,
+                    onChecked = {
+                        viewModel.setParticipantsIsChecked(it)
+                    },
+                    onClicked = {
+                        participantsExpanded.value = !participantsExpanded.value
+                    }
+                )
+            },
+            dropDownItem = { contentItem ->
                 (1..5).forEach {
-                    DropdownMenuItem(
-                        modifier = Modifier.background(categoryColor.colorSecondFg),
+                    contentItem(
                         onClick = {
                             viewModel.setParticipantsValue(it)
-                            participantsExpanded = false
+                            participantsExpanded.value = false
                         }) {
 
                         CardSecondText(
@@ -239,8 +210,7 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
 
                     }
                 }
-            }
-        }
+            })
 
         val priceRangeStart =
             viewModel.statePriceRangeStartValue.collectAsState(initial = 0f)
@@ -248,64 +218,31 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
             viewModel.statePriceRangeEndValue.collectAsState(initial = 1f)
         val priceRange =
             derivedStateOf { priceRangeStart.value..priceRangeEnd.value }
-        val priceRangeSlider = remember {
-            mutableStateOf(priceRange.value.start..priceRange.value.endInclusive)
-        }
 
         FilterItem(
             categoryColor = categoryColor,
             text = "Price Range",
+            isDisabled = stateRandomIsChecked.value,
             value = "${(priceRange.value.start * 100).roundToInt()}% - ${(priceRange.value.endInclusive * 100).roundToInt()}%",
             isChecked = viewModel.statePriceRangeIsChecked.collectAsState(false).value,
             onChecked = {
                 viewModel.setPriceRangeIsChecked(it)
             },
             onClicked = {
-                priceRangeExpanded = !priceRangeExpanded
+                priceRangeExpanded.value = !priceRangeExpanded.value
             }
         )
 
-        if (priceRangeExpanded) {
-
-            ContentDialog(
-                onDismiss = {
-                    priceRangeExpanded = false
-                },
-                title = "Price Range",
-                categoryColor = categoryColor,
-                onOk = {
-                    viewModel.setPriceRangeStartValue(
-                        priceRangeSlider.value.start.roundToTwoDecimals()
-                    )
-                    viewModel.setPriceRangeEndValue(priceRangeSlider.value.endInclusive.roundToTwoDecimals())
-                    priceRangeExpanded = false
-                }, onCancel = {
-                    priceRangeExpanded = false
-                },
-                content = {
-                    Column {
-                        CardSecondText(
-                            modifier = Modifier
-                                .padding(8.dp),
-                            text = "From ${(priceRangeSlider.value.start * 100).roundToInt()} To ${(priceRangeSlider.value.endInclusive * 100).roundToInt()}%",
-                            textColor = categoryColor.colorSecondBg,
-                            textAlign = TextAlign.Start
-                        )
-                        RangeSlider(
-                            steps = 100,
-                            values = priceRangeSlider.value,
-                            colors = SliderDefaults.colors(
-                                thumbColor = categoryColor.colorBg,
-
-                                ),
-                            onValueChange = {
-                                priceRangeSlider.value =
-                                    it.start.roundToTwoDecimals()..it.endInclusive.roundToTwoDecimals()
-                            })
-                    }
-                }
-            )
-        }
+        SliderDialog(title = "Accessibility Range",
+            categoryColor = categoryColor,
+            initValue = priceRange,
+            onOk = {
+                viewModel.setPriceRangeStartValue(
+                    it.start.roundToTwoDecimals()
+                )
+                viewModel.setPriceRangeEndValue(it.endInclusive.roundToTwoDecimals())
+            }, rangeExpanded = priceRangeExpanded, onValueChange = {
+            })
 
         val accessibilityRangeStart =
             viewModel.stateAccessibilityRangeStartValue.collectAsState(initial = 0f)
@@ -313,60 +250,124 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
             viewModel.stateAccessibilityRangeEndValue.collectAsState(initial = 1f)
         val accessibilityRange =
             derivedStateOf { accessibilityRangeStart.value..accessibilityRangeEnd.value }
-        val accessibilityRangeSlider = remember {
-            mutableStateOf(accessibilityRange.value.start..accessibilityRange.value.endInclusive)
-        }
 
         FilterItem(
             categoryColor = categoryColor,
             text = "Accessibility Range",
+            isDisabled = stateRandomIsChecked.value,
             value = "${(accessibilityRange.value.start * 100).roundToInt()}% - ${(accessibilityRange.value.endInclusive * 100).roundToInt()}%",
             isChecked = viewModel.stateAccessibilityRangeIsChecked.collectAsState(false).value,
             onChecked = {
                 viewModel.setAccessibilityRangeIsChecked(it)
             }, onClicked = {
-                accessibilityRangeExpanded = !accessibilityRangeExpanded
+                accessibilityRangeExpanded.value = !accessibilityRangeExpanded.value
             }
         )
 
-        if (accessibilityRangeExpanded) {
+        SliderDialog(title = "Accessibility Range",
+            categoryColor = categoryColor,
+            initValue = accessibilityRange,
+            onOk = {
+                viewModel.setAccessibilityRangeStartValue(it.start.roundToTwoDecimals())
+                viewModel.setAccessibilityRangeEndValue(it.endInclusive.roundToTwoDecimals())
+            }, rangeExpanded = accessibilityRangeExpanded, onValueChange = {
+            })
 
-            ContentDialog(
-                onDismiss = {
-                    accessibilityRangeExpanded = false
-                },
-                title = "Accessibility Range",
-                categoryColor = categoryColor,
-                onOk = {
-                    viewModel.setAccessibilityRangeStartValue(
-                        accessibilityRangeSlider.value.start.roundToTwoDecimals()
+    }
+}
+
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
+@Composable
+fun SliderDialog(
+    title: String,
+    rangeExpanded: MutableState<Boolean>,
+    categoryColor: CategoryColorItem,
+    initValue: State<ClosedFloatingPointRange<Float>>,
+    onValueChange: (rangeSliderValue: ClosedFloatingPointRange<Float>) -> Unit,
+    onOk: (rangeSliderValue: ClosedFloatingPointRange<Float>) -> Unit
+) {
+
+    val rangeSlider = remember {
+        mutableStateOf(initValue.value.start..initValue.value.endInclusive)
+    }
+
+    ContentDialog(
+        categoryColor = categoryColor,
+        title = title,
+        isExpanded = rangeExpanded,
+        widthFactor = .7f, onOk = {
+            onOk(rangeSlider.value)
+        },
+        content = {
+            Column(Modifier.padding(12.dp)) {
+                CardSecondText(
+                    modifier = Modifier
+                        .padding(8.dp),
+                    text = "From ${(rangeSlider.value.start * 100).roundToInt()} To ${(rangeSlider.value.endInclusive * 100).roundToInt()}%",
+                    textColor = categoryColor.colorSecondBg,
+                    textAlign = TextAlign.Start
+                )
+                RangeSlider(
+                    steps = 100,
+                    values = rangeSlider.value,
+                    onValueChange = {
+                        onValueChange(it)
+                        rangeSlider.value =
+                            it.start.roundToTwoDecimals()..it.endInclusive.roundToTwoDecimals()
+                    },
+                    colors = SliderDefaults.colors(
+                        thumbColor = categoryColor.colorBg,
+                        activeTrackColor = categoryColor.colorBg,
+                        inactiveTrackColor = categoryColor.colorBg.copy(alpha = .5f),
+                        inactiveTickColor = categoryColor.colorBg.copy(alpha = TickAlpha),
                     )
-                    viewModel.setAccessibilityRangeEndValue(
-                        accessibilityRangeSlider.value.endInclusive.roundToTwoDecimals()
-                    )
-                    accessibilityRangeExpanded = false
-                }, onCancel = {
-                    accessibilityRangeExpanded = false
-                },
-                content = {
-                    Column {
-                        CardSecondText(
-                            modifier = Modifier
-                                .padding(8.dp),
-                            text = "From ${(accessibilityRangeSlider.value.start * 100).roundToInt()} To ${(accessibilityRangeSlider.value.endInclusive * 100).roundToInt()}%",
-                            textColor = categoryColor.colorSecondBg,
-                            textAlign = TextAlign.Start
-                        )
-                        RangeSlider(
-                            steps = 100,
-                            values = accessibilityRangeSlider.value,
-                            onValueChange = {
-                                accessibilityRangeSlider.value =
-                                    it.start.roundToTwoDecimals()..it.endInclusive.roundToTwoDecimals()
-                            })
-                    }
-                }
-            )
+                )
+            }
+        }
+    )
+
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun ExposedDropDown(
+    expanded: MutableState<Boolean>,
+    categoryColor: CategoryColorItem,
+    headerItem: @Composable () -> Unit,
+    dropDownItem: @Composable (
+        dropDownMenuItem: @Composable (
+            onClick: () -> Unit,
+            content: @Composable()
+            (RowScope.() -> Unit)
+        ) -> Unit
+    ) -> Unit
+) {
+
+    ExposedDropdownMenuBox(
+        expanded = expanded.value,
+        onExpandedChange = {
+        }
+    ) {
+
+        headerItem.invoke()
+
+        ExposedDropdownMenu(
+            modifier = Modifier.background(categoryColor.colorSecondFg),
+            expanded = expanded.value,
+            onDismissRequest = {
+                expanded.value = false
+            }
+        ) {
+            dropDownItem { onClick, content ->
+                DropdownMenuItem(
+                    modifier = Modifier.background(categoryColor.colorSecondFg),
+                    onClick = {
+                        onClick.invoke()
+                        expanded.value = false
+                    }, content = content
+                )
+            }
         }
 
     }
@@ -379,92 +380,103 @@ fun ContentDialog(
     categoryColor: CategoryColorItem,
     title: String,
     titleIcon: ImageVector? = null,
+    widthFactor: Float = .8f,
     onDismiss: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
     onOk: (() -> Unit)? = null,
-    content: (@Composable () -> Unit)? = null
+    content: @Composable() (() -> Unit)? = null,
+    isExpanded: MutableState<Boolean>
 ) {
+
     val currentContent by rememberUpdatedState(content)
     val titlePadding = derivedStateOf { if (titleIcon == null) 18.dp else 10.dp }
 
-    Dialog(
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false
-        ),
-        onDismissRequest = {
-            onDismiss?.invoke()
-        }) {
-        Surface(
-            modifier = modifier.fillMaxWidth(.8f),
-            shape = RoundedCornerShape(10.dp),
-            color = categoryColor.colorSecondFg
-        ) {
-            Column {
-                Row(
-                    Modifier
-                        .background(categoryColor.colorBg)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    titleIcon?.let { imageVector ->
-                        Icon(
-                            imageVector = imageVector,
-                            contentDescription = "Category Icon",
-                            tint = categoryColor.colorFg,
-                            modifier = Modifier
-                                .padding(top = 12.dp, bottom = 12.dp, start = 10.dp)
-                                .clip(RoundedCornerShape(100.dp))
-                                .background(color = categoryColor.colorBg)
-                                .padding(5.dp)
+    if (isExpanded.value) {
+
+        Dialog(
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false
+            ),
+            onDismissRequest = {
+                onDismiss?.invoke()
+                isExpanded.value = false
+            }) {
+            Surface(
+                modifier = modifier.fillMaxWidth(widthFactor.coerceIn(0f, 1f)),
+                shape = RoundedCornerShape(10.dp),
+                color = categoryColor.colorSecondFg
+            ) {
+                Column {
+                    Row(
+                        Modifier
+                            .background(categoryColor.colorBg)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        titleIcon?.let { imageVector ->
+                            Icon(
+                                imageVector = imageVector,
+                                contentDescription = "Category Icon",
+                                tint = categoryColor.colorFg,
+                                modifier = Modifier
+                                    .padding(top = 12.dp, bottom = 12.dp, start = 10.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(color = categoryColor.colorBg)
+                                    .padding(5.dp)
+                            )
+                        }
+                        CardSecondText(
+                            text = title,
+                            textColor = categoryColor.colorFg,
+                            modifier = Modifier.padding(
+                                top = 18.dp,
+                                bottom = 18.dp,
+                                start = titlePadding.value
+                            ),
+                            fontSize = 18.sp
                         )
                     }
-                    CardSecondText(
-                        text = title,
-                        textColor = categoryColor.colorFg,
-                        modifier = Modifier.padding(
-                            top = 18.dp,
-                            bottom = 18.dp,
-                            start = titlePadding.value
-                        ),
-                        fontSize = 18.sp
-                    )
+                    Box(Modifier.padding(12.dp)) {
+                        currentContent?.invoke()
+                    }
+                    Row(
+                        Modifier
+                            .background(categoryColor.colorBg)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        onCancel?.let {
+                            CardSecondText(
+                                text = "Cancel",
+                                textColor = categoryColor.colorFg,
+                                modifier = Modifier
+                                    .clickable(indication = rememberRipple(color = categoryColor.colorFg),
+                                        interactionSource = remember { MutableInteractionSource() }) {
+                                        onCancel.invoke()
+                                        isExpanded.value = false
+                                    }
+                                    .fillMaxWidth(.5f)
+                                    .padding(12.dp),
+                                fontSize = 18.sp
+                            )
+                        }
+                        CardSecondText(
+                            text = "OK",
+                            textColor = categoryColor.colorFg,
+                            modifier = Modifier
+                                .clickable(indication = rememberRipple(color = categoryColor.colorFg),
+                                    interactionSource = remember { MutableInteractionSource() }) {
+                                    onOk?.invoke()
+                                    isExpanded.value = false
+                                }
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            fontSize = 18.sp
+                        )
+                    }
                 }
-                Box(Modifier.padding(12.dp)) {
-                    currentContent?.invoke()
-                }
-                Row(
-                    Modifier
-                        .background(categoryColor.colorBg)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CardSecondText(
-                        text = "Cancel",
-                        textColor = categoryColor.colorFg,
-                        modifier = Modifier
-                            .clickable(indication = rememberRipple(color = categoryColor.colorFg),
-                                interactionSource = remember { MutableInteractionSource() }) {
-                                onCancel?.invoke()
-                            }
-                            .fillMaxWidth(.5f)
-                            .padding(12.dp),
-                        fontSize = 18.sp
-                    )
-                    CardSecondText(
-                        text = "OK",
-                        textColor = categoryColor.colorFg,
-                        modifier = Modifier
-                            .clickable(indication = rememberRipple(color = categoryColor.colorFg),
-                                interactionSource = remember { MutableInteractionSource() }) {
-                                onOk?.invoke()
-                            }
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        fontSize = 18.sp
-                    )
-                }
-            }
 
+            }
         }
     }
 }
@@ -475,12 +487,16 @@ fun FilterItem(
     text: String,
     icon: ImageVector? = null,
     value: String? = null,
+    isDisabled: Boolean = false,
     isChecked: Boolean,
     onChecked: (isChecked: Boolean) -> Unit,
     onClicked: (() -> Unit)? = null,
     iconColor: Color = categoryColor.colorBg,
     attachComposable: @Composable() (() -> Unit)? = null
 ) {
+
+    val disabledAlpha = derivedStateOf { if (isDisabled) .5f else 1f }
+
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -489,12 +505,13 @@ fun FilterItem(
         Checkbox(
             checked = isChecked,
             onCheckedChange = {
-                onChecked(it)
+                if (!isDisabled)
+                    onChecked(it)
             },
             colors = CheckboxDefaults.colors(
-                checkedColor = categoryColor.colorSecondFg,
-                uncheckedColor = categoryColor.colorSecondBg,
-                checkmarkColor = categoryColor.colorBg
+                checkedColor = categoryColor.colorSecondFg.copy(alpha = disabledAlpha.value),
+                uncheckedColor = categoryColor.colorSecondBg.copy(alpha = disabledAlpha.value),
+                checkmarkColor = categoryColor.colorBg.copy(alpha = disabledAlpha.value)
             ),
             modifier = Modifier
                 .padding(
@@ -504,13 +521,16 @@ fun FilterItem(
         )
         Row(
             Modifier
-                .clickable(
-                    indication = rememberRipple(color = categoryColor.colorBg),
-                    interactionSource = remember { MutableInteractionSource() },
-                    onClick = {
-                        onClicked?.invoke()
-                    }
-                )
+                .let {
+                    return@let if (!isDisabled && onClicked != null) {
+                        it.clickable(
+                            indication = rememberRipple(color = categoryColor.colorBg),
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) {
+                            onClicked.invoke()
+                        }
+                    } else it
+                }
                 .fillMaxWidth()
                 .weight(1f),
             verticalAlignment = Alignment.CenterVertically,
@@ -519,7 +539,7 @@ fun FilterItem(
 
             CardSecondText(
                 text = text,
-                textColor = categoryColor.colorSecondBg
+                textColor = categoryColor.colorSecondBg.copy(alpha = disabledAlpha.value)
             )
             Box {
                 value?.let {
@@ -527,10 +547,10 @@ fun FilterItem(
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
-                            .background(categoryColor.colorBg)
+                            .background(categoryColor.colorBg.copy(alpha = disabledAlpha.value))
                             .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
                         text = value,
-                        textColor = categoryColor.colorFg
+                        textColor = categoryColor.colorFg.copy(alpha = disabledAlpha.value)
                     )
                 }
 
@@ -538,18 +558,17 @@ fun FilterItem(
                     Icon(
                         imageVector = icon,
                         contentDescription = "Category Icon",
-                        tint = categoryColor.colorFg,
+                        tint = categoryColor.colorFg.copy(alpha = disabledAlpha.value),
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
-                            .background(color = iconColor)
+                            .background(color = iconColor.copy(alpha = disabledAlpha.value))
                             .padding(5.dp)
                     )
                 }
                 attachComposable?.invoke()
             }
         }
-
 
     }
 }

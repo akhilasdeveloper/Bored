@@ -49,6 +49,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
 
     val cardStates = viewModel.cardStates
     val cards = viewModel.cards
+    val errorState = viewModel.errorState
     val categoryColor = viewModel.categoryColor.value
 
     Box(
@@ -62,26 +63,40 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                 .background(color = viewModel.transparentValue()),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (errorState.value == null) {
 
-            SelectionButton(
-                text = "Skip",
-                isSelected = viewModel.passSelected.value,
-                modifier = Modifier.weight(1f),
-                accent = categoryColor.colorBg,
-                accentFg = viewModel.systemBarColorFg.value,
-                transparentValue = viewModel.transparentValue()
-            ) {
-                viewModel.passSelected()
-            }
-            SelectionButton(
-                text = "TODO",
-                isSelected = viewModel.addSelected.value,
-                modifier = Modifier.weight(1f),
-                accent = categoryColor.colorBg,
-                accentFg = viewModel.systemBarColorFg.value,
-                transparentValue = viewModel.transparentValue()
-            ) {
-                viewModel.addSelected()
+                SelectionButton(
+                    text = "Skip",
+                    isSelected = viewModel.passSelected.value,
+                    modifier = Modifier.weight(1f),
+                    accent = categoryColor.colorBg,
+                    accentFg = viewModel.systemBarColorFg.value,
+                    transparentValue = viewModel.transparentValue()
+                ) {
+                    viewModel.passSelected()
+                }
+                SelectionButton(
+                    text = "TODO",
+                    isSelected = viewModel.addSelected.value,
+                    modifier = Modifier.weight(1f),
+                    accent = categoryColor.colorBg,
+                    accentFg = viewModel.systemBarColorFg.value,
+                    transparentValue = viewModel.transparentValue()
+                ) {
+                    viewModel.addSelected()
+                }
+            }else{
+                SelectionButton(
+                    text = "Tap to Retry",
+                    isSelected = viewModel.addSelected.value,
+                    modifier = Modifier.weight(1f),
+                    accent = categoryColor.colorBg,
+                    accentFg = viewModel.systemBarColorFg.value,
+                    transparentValue = viewModel.transparentValue(),
+                    alignTextCenter = true
+                ) {
+                    viewModel.getRandomActivity()
+                }
             }
         }
 
@@ -92,25 +107,29 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
             contentAlignment = Alignment.Center
         ) {
 
-            cards.forEachIndexed { index, card ->
+            if (errorState.value == null) {
+                cards.forEachIndexed { index, card ->
 
-                CardView(
-                    cardDao = card,
-                    cardState = cardStates[index],
-                    onRemoveCompleted = {
-                        viewModel.removeCompleted(card)
-                    },
-                    onSelected = {
-                        viewModel.onSelected(index, it)
-                    },
-                    onLoadCompleted = {
-                        viewModel.setCardLoadingCompletedState(true)
-                    },
-                    onDragSelect = {
-                        viewModel.setDragSelectState(it)
-                    },
-                    categoryColor = categoryColor
-                )
+                    CardView(
+                        cardDao = card,
+                        cardState = cardStates[index],
+                        onRemoveCompleted = {
+                            viewModel.removeCompleted(card)
+                        },
+                        onSelected = {
+                            viewModel.onSelected(index, it)
+                        },
+                        onLoadCompleted = {
+                            viewModel.setCardLoadingCompletedState(true)
+                        },
+                        onDragSelect = {
+                            viewModel.setDragSelectState(it)
+                        },
+                        categoryColor = categoryColor
+                    )
+                }
+            }else{
+                CardSecondText(text = errorState.value, textColor = categoryColor.colorBg)
             }
 
             LoadingProgress(
@@ -132,6 +151,7 @@ fun SelectionButton(
     transparentValue: Color,
     accent: Color,
     accentFg: Color,
+    alignTextCenter: Boolean = false,
     onClicked: () -> Unit
 ) {
     var fontSize by remember { mutableStateOf(selectionDeselectedFontSize) }
@@ -158,12 +178,23 @@ fun SelectionButton(
         contentAlignment = Alignment.BottomCenter
     )
     {
-        CardSecondText(
-            text = text,
-            textColor = accentFg,
-            fontSize = animFontSize.sp,
-            modifier = Modifier.padding(20.dp)
-        )
+        if (!alignTextCenter) {
+            CardSecondText(
+                text = text,
+                textColor = accentFg,
+                fontSize = animFontSize.sp,
+                modifier = Modifier.padding(20.dp)
+            )
+        }else{
+            Box(Modifier.fillMaxSize(.5f), contentAlignment = Alignment.Center) {
+                CardSecondText(
+                    text = text,
+                    textColor = accentFg,
+                    fontSize = animFontSize.sp,
+                    modifier = Modifier.padding(20.dp)
+                )
+            }
+        }
     }
 }
 

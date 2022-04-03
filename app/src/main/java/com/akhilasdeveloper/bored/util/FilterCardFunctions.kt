@@ -1,11 +1,10 @@
 package com.akhilasdeveloper.bored.util
 
-import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.akhilasdeveloper.bored.data.CategoryData
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -30,9 +29,11 @@ class FilterCardFunctions
         dataStore.saveValueToPreferencesStore(FILTER_RANDOM_IS_CHECKED, value)
     }
 
-    fun getRandomIsChecked() = dataStore.getValueFromPreferencesStore(FILTER_RANDOM_IS_CHECKED).map {
+    fun getRandomIsChecked() = dataStore.getValueAsFlowFromPreferencesStore(FILTER_RANDOM_IS_CHECKED).map {
             it ?: true
         }
+
+    suspend fun getRandomIsCheckedRaw() = dataStore.getValueFromPreferencesStore(FILTER_RANDOM_IS_CHECKED)?: true
 
 
     //Filter Field Type
@@ -42,16 +43,22 @@ class FilterCardFunctions
     }
 
     fun getTypeIsChecked() =
-        dataStore.getValueFromPreferencesStore(FILTER_TYPE_IS_CHECKED).map { it ?: false }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_TYPE_IS_CHECKED).map { it ?: false }
+
+    suspend fun getTypeIsCheckedRaw() =
+        dataStore.getValueFromPreferencesStore(FILTER_TYPE_IS_CHECKED)?: false
 
     suspend fun setTypeValue(value: String) {
         dataStore.saveValueToPreferencesStore(FILTER_TYPE_VALUE, value)
     }
 
     fun getTypeValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_TYPE_VALUE).map {
-            it ?: "invalid"
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_TYPE_VALUE).map {
+            it ?: CategoryData.Invalid.key
         }
+
+    suspend fun getTypeRawValue() =
+        dataStore.getValueFromPreferencesStore(FILTER_TYPE_VALUE)?: CategoryData.Invalid.key
 
 
     //Filter Field Participants
@@ -61,14 +68,20 @@ class FilterCardFunctions
     }
 
     fun getParticipantsIsChecked() =
-        dataStore.getValueFromPreferencesStore(FILTER_PARTICIPANTS_IS_CHECKED).map { it ?: false }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_PARTICIPANTS_IS_CHECKED).map { it ?: false }
+
+    suspend fun getParticipantsIsCheckedRaw() =
+        dataStore.getValueFromPreferencesStore(FILTER_PARTICIPANTS_IS_CHECKED) ?: false
 
     suspend fun setParticipantsValue(value: Int) {
         dataStore.saveValueToPreferencesStore(FILTER_PARTICIPANTS_VALUE, value)
     }
 
     fun getParticipantsValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_PARTICIPANTS_VALUE).map { it ?: 1 }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_PARTICIPANTS_VALUE).map { it ?: 1 }
+
+    suspend fun getParticipantsRawValue() =
+        dataStore.getValueFromPreferencesStore(FILTER_PARTICIPANTS_VALUE) ?: 1
 
 
     //Filter Field PriceRange
@@ -78,21 +91,30 @@ class FilterCardFunctions
     }
 
     fun getPriceRangeIsChecked() =
-        dataStore.getValueFromPreferencesStore(FILTER_PRICE_RANGE_IS_CHECKED).map { it ?: false }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_PRICE_RANGE_IS_CHECKED).map { it ?: false }
+
+    suspend fun getPriceRangeIsCheckedRaw() =
+        dataStore.getValueFromPreferencesStore(FILTER_PRICE_RANGE_IS_CHECKED)?: false
 
     suspend fun setPriceRangeStartValue(value: Float) {
         dataStore.saveValueToPreferencesStore(FILTER_PRICE_RANGE_START_VALUE, value)
     }
 
     fun getPriceRangeStartValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_PRICE_RANGE_START_VALUE).map { it ?: 0.0f }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_PRICE_RANGE_START_VALUE).map { it ?: 0.0f }
+
+    suspend fun getPriceRangeStartRawValue() =
+        dataStore.getValueFromPreferencesStore(FILTER_PRICE_RANGE_START_VALUE) ?: 0.0f
 
     suspend fun setPriceRangeEndValue(value: Float) {
         dataStore.saveValueToPreferencesStore(FILTER_PRICE_RANGE_END_VALUE, value)
     }
 
     fun getPriceRangeEndValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_PRICE_RANGE_END_VALUE).map { it ?: 1.0f }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_PRICE_RANGE_END_VALUE).map { it ?: 1.0f }
+
+    suspend fun getPriceRangeEndRawValue() =
+        dataStore.getValueFromPreferencesStore(FILTER_PRICE_RANGE_END_VALUE) ?: 1.0f
 
 
     //Filter Field AccessibilityRange
@@ -102,22 +124,31 @@ class FilterCardFunctions
     }
 
     fun getAccessibilityRangeIsChecked() =
-        dataStore.getValueFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_IS_CHECKED)
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_IS_CHECKED)
             .map { it ?: false }
+
+    suspend fun getAccessibilityRangeIsCheckedRaw() =
+        dataStore.getValueFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_IS_CHECKED) ?: false
 
     suspend fun setAccessibilityRangeStartValue(value: Float) {
         dataStore.saveValueToPreferencesStore(FILTER_ACCESSIBILITY_RANGE_START_VALUE, value)
     }
 
     fun getAccessibilityRangeStartValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_START_VALUE).map { it ?: 0.0f }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_START_VALUE).map { it ?: 0.0f }
+
+    suspend fun getAccessibilityRangeStartRawValue() =
+        dataStore.getValueFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_START_VALUE) ?: 0.0f
 
     suspend fun setAccessibilityRangeEndValue(value: Float) {
         dataStore.saveValueToPreferencesStore(FILTER_ACCESSIBILITY_RANGE_END_VALUE, value)
     }
 
     fun getAccessibilityRangeEndValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_END_VALUE).map { it ?: 1.0f }
+        dataStore.getValueAsFlowFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_END_VALUE).map { it ?: 1.0f }
+
+    suspend fun getAccessibilityRangeEndRawValue() =
+        dataStore.getValueFromPreferencesStore(FILTER_ACCESSIBILITY_RANGE_END_VALUE) ?: 1.0f
 
 }
 
