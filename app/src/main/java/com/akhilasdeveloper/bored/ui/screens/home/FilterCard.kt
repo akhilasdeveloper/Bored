@@ -1,4 +1,4 @@
-package com.akhilasdeveloper.bored.ui.screens.homescreen
+package com.akhilasdeveloper.bored.ui.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,7 +63,9 @@ fun FilterCard(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
             FilterContents(
                 categoryColor = categoryColor,
                 viewModel = viewModel,
-                expandedMain = expanded
+                expandedMain = expanded,
+                backgroundColor = viewModel.systemBarColor.value,
+                foregroundColor = viewModel.systemBarColorFg.value
             )
 
         }
@@ -76,18 +78,26 @@ fun FilterCard(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
 fun FilterContents(
     categoryColor: CategoryColorItem,
     viewModel: HomeViewModel,
-    expandedMain: MutableState<Boolean>
+    expandedMain: MutableState<Boolean>,
+    foregroundColor: Color,
+    backgroundColor: Color
 ) {
     ContentDialog(
         isExpanded = expandedMain,
         categoryColor = categoryColor,
         title = "Filter",
         titleIcon = Icons.Rounded.FilterAlt,
+        foregroundColor = foregroundColor,
+        backgroundColor = backgroundColor,
         onOk = {
-               viewModel.getClearAndGetActivity()
+            viewModel.getClearAndGetActivity()
         },
         content = {
-            MainFilterContents(categoryColor = categoryColor, viewModel = viewModel)
+            MainFilterContents(
+                categoryColor = categoryColor, viewModel = viewModel,
+                backgroundColor = backgroundColor,
+                foregroundColor = foregroundColor
+            )
         }
     )
 
@@ -96,7 +106,10 @@ fun FilterContents(
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
-fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
+fun MainFilterContents(
+    categoryColor: CategoryColorItem, viewModel: HomeViewModel, foregroundColor: Color,
+    backgroundColor: Color
+) {
 
     val stateRandomIsChecked = viewModel.stateRandomIsChecked.collectAsState(false)
 
@@ -105,7 +118,7 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
     val priceRangeExpanded = remember { mutableStateOf(false) }
     val accessibilityRangeExpanded = remember { mutableStateOf(false) }
 
-    Column(Modifier.background(categoryColor.colorSecondFg)) {
+    Column(Modifier.background(backgroundColor)) {
 
         val categoryMainData =
             viewModel.stateTypeValue.collectAsState(initial = CategoryData.Invalid)
@@ -115,16 +128,21 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
         FilterItem(
             categoryColor = categoryColor,
             text = "Random",
+            foregroundColor = foregroundColor,
+            backgroundColor = backgroundColor,
             isChecked = stateRandomIsChecked.value,
             onChecked = {
                 viewModel.setRandomIsChecked(it)
             }
         )
 
-        ExposedDropDown(expanded = typeExpanded, categoryColor = categoryColor, headerItem = {
+        ExposedDropDown(expanded = typeExpanded,foregroundColor = foregroundColor,
+            backgroundColor = backgroundColor, categoryColor = categoryColor, headerItem = {
             FilterItem(
                 categoryColor = categoryColor,
                 text = "Type",
+                foregroundColor = foregroundColor,
+                backgroundColor = backgroundColor,
                 isDisabled = stateRandomIsChecked.value,
                 icon = categoryMainData.value.icon,
                 iconColor = categoryMainTheme.value.colorBg,
@@ -166,7 +184,7 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
                             modifier = Modifier
                                 .padding(8.dp),
                             text = category.title,
-                            textColor = categoryTheme.value.colorSecondBg,
+                            textColor = foregroundColor,
                             textAlign = TextAlign.Start
                         )
                     }
@@ -181,6 +199,8 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
                 FilterItem(
                     categoryColor = categoryColor,
                     text = "Participants",
+                    foregroundColor = foregroundColor,
+                    backgroundColor = backgroundColor,
                     isDisabled = stateRandomIsChecked.value,
                     value = "${viewModel.stateParticipantsValue.collectAsState(initial = 0).value}",
                     isChecked = viewModel.stateParticipantsIsChecked.collectAsState(false).value,
@@ -204,13 +224,16 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
                             modifier = Modifier
                                 .padding(8.dp),
                             text = "$it",
-                            textColor = categoryColor.colorSecondBg,
+                            textColor = foregroundColor,
                             textAlign = TextAlign.Start
                         )
 
                     }
                 }
-            })
+            },
+            foregroundColor = foregroundColor,
+            backgroundColor = backgroundColor
+        )
 
         val priceRangeStart =
             viewModel.statePriceRangeStartValue.collectAsState(initial = 0f)
@@ -222,6 +245,8 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
         FilterItem(
             categoryColor = categoryColor,
             text = "Price Range",
+            foregroundColor = foregroundColor,
+            backgroundColor = backgroundColor,
             isDisabled = stateRandomIsChecked.value,
             value = "${(priceRange.value.start * 100).roundToInt()}% - ${(priceRange.value.endInclusive * 100).roundToInt()}%",
             isChecked = viewModel.statePriceRangeIsChecked.collectAsState(false).value,
@@ -236,6 +261,8 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
         SliderDialog(title = "Accessibility Range",
             categoryColor = categoryColor,
             initValue = priceRange,
+            backgroundColor = backgroundColor,
+            foregroundColor = foregroundColor,
             onOk = {
                 viewModel.setPriceRangeStartValue(
                     it.start.roundToTwoDecimals()
@@ -254,6 +281,8 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
         FilterItem(
             categoryColor = categoryColor,
             text = "Accessibility Range",
+            foregroundColor = foregroundColor,
+            backgroundColor = backgroundColor,
             isDisabled = stateRandomIsChecked.value,
             value = "${(accessibilityRange.value.start * 100).roundToInt()}% - ${(accessibilityRange.value.endInclusive * 100).roundToInt()}%",
             isChecked = viewModel.stateAccessibilityRangeIsChecked.collectAsState(false).value,
@@ -267,6 +296,8 @@ fun MainFilterContents(categoryColor: CategoryColorItem, viewModel: HomeViewMode
         SliderDialog(title = "Accessibility Range",
             categoryColor = categoryColor,
             initValue = accessibilityRange,
+            backgroundColor = backgroundColor,
+            foregroundColor = foregroundColor,
             onOk = {
                 viewModel.setAccessibilityRangeStartValue(it.start.roundToTwoDecimals())
                 viewModel.setAccessibilityRangeEndValue(it.endInclusive.roundToTwoDecimals())
@@ -283,9 +314,11 @@ fun SliderDialog(
     title: String,
     rangeExpanded: MutableState<Boolean>,
     categoryColor: CategoryColorItem,
+    foregroundColor: Color,
+    backgroundColor: Color,
     initValue: State<ClosedFloatingPointRange<Float>>,
     onValueChange: (rangeSliderValue: ClosedFloatingPointRange<Float>) -> Unit,
-    onOk: (rangeSliderValue: ClosedFloatingPointRange<Float>) -> Unit
+    onOk: (rangeSliderValue: ClosedFloatingPointRange<Float>) -> Unit,
 ) {
 
     val rangeSlider = remember {
@@ -295,17 +328,16 @@ fun SliderDialog(
     ContentDialog(
         categoryColor = categoryColor,
         title = title,
-        isExpanded = rangeExpanded,
-        widthFactor = .7f, onOk = {
+        widthFactor = .7f,
+        onOk = {
             onOk(rangeSlider.value)
-        },
-        content = {
+        }, content = {
             Column(Modifier.padding(12.dp)) {
                 CardSecondText(
                     modifier = Modifier
                         .padding(8.dp),
                     text = "From ${(rangeSlider.value.start * 100).roundToInt()} To ${(rangeSlider.value.endInclusive * 100).roundToInt()}%",
-                    textColor = categoryColor.colorSecondBg,
+                    textColor = foregroundColor,
                     textAlign = TextAlign.Start
                 )
                 RangeSlider(
@@ -319,12 +351,15 @@ fun SliderDialog(
                     colors = SliderDefaults.colors(
                         thumbColor = categoryColor.colorBg,
                         activeTrackColor = categoryColor.colorBg,
-                        inactiveTrackColor = categoryColor.colorBg.copy(alpha = .5f),
+                        inactiveTrackColor = foregroundColor.copy(alpha = .5f),
                         inactiveTickColor = categoryColor.colorBg.copy(alpha = TickAlpha),
                     )
                 )
             }
-        }
+        },
+        isExpanded = rangeExpanded,
+        backgroundColor = backgroundColor,
+        foregroundColor = foregroundColor
     )
 
 }
@@ -335,13 +370,9 @@ fun ExposedDropDown(
     expanded: MutableState<Boolean>,
     categoryColor: CategoryColorItem,
     headerItem: @Composable () -> Unit,
-    dropDownItem: @Composable (
-        dropDownMenuItem: @Composable (
-            onClick: () -> Unit,
-            content: @Composable()
-            (RowScope.() -> Unit)
-        ) -> Unit
-    ) -> Unit
+    dropDownItem: @Composable (dropDownMenuItem: @Composable (onClick: () -> Unit, content: @Composable() (RowScope.() -> Unit)) -> Unit) -> Unit,
+    foregroundColor: Color,
+    backgroundColor: Color
 ) {
 
     ExposedDropdownMenuBox(
@@ -353,7 +384,7 @@ fun ExposedDropDown(
         headerItem.invoke()
 
         ExposedDropdownMenu(
-            modifier = Modifier.background(categoryColor.colorSecondFg),
+            modifier = Modifier.background(backgroundColor),
             expanded = expanded.value,
             onDismissRequest = {
                 expanded.value = false
@@ -361,7 +392,7 @@ fun ExposedDropDown(
         ) {
             dropDownItem { onClick, content ->
                 DropdownMenuItem(
-                    modifier = Modifier.background(categoryColor.colorSecondFg),
+                    modifier = Modifier.background(backgroundColor),
                     onClick = {
                         onClick.invoke()
                         expanded.value = false
@@ -385,7 +416,9 @@ fun ContentDialog(
     onCancel: (() -> Unit)? = null,
     onOk: (() -> Unit)? = null,
     content: @Composable() (() -> Unit)? = null,
-    isExpanded: MutableState<Boolean>
+    isExpanded: MutableState<Boolean>,
+    backgroundColor: Color,
+    foregroundColor: Color
 ) {
 
     val currentContent by rememberUpdatedState(content)
@@ -404,7 +437,7 @@ fun ContentDialog(
             Surface(
                 modifier = modifier.fillMaxWidth(widthFactor.coerceIn(0f, 1f)),
                 shape = RoundedCornerShape(10.dp),
-                color = categoryColor.colorSecondFg
+                color = backgroundColor
             ) {
                 Column {
                     Row(
@@ -490,6 +523,8 @@ fun FilterItem(
     isDisabled: Boolean = false,
     isChecked: Boolean,
     onChecked: (isChecked: Boolean) -> Unit,
+    foregroundColor: Color,
+    backgroundColor: Color,
     onClicked: (() -> Unit)? = null,
     iconColor: Color = categoryColor.colorBg,
     attachComposable: @Composable() (() -> Unit)? = null
@@ -509,8 +544,8 @@ fun FilterItem(
                     onChecked(it)
             },
             colors = CheckboxDefaults.colors(
-                checkedColor = categoryColor.colorSecondFg.copy(alpha = disabledAlpha.value),
-                uncheckedColor = categoryColor.colorSecondBg.copy(alpha = disabledAlpha.value),
+                checkedColor = backgroundColor.copy(alpha = disabledAlpha.value),
+                uncheckedColor = foregroundColor.copy(alpha = disabledAlpha.value),
                 checkmarkColor = categoryColor.colorBg.copy(alpha = disabledAlpha.value)
             ),
             modifier = Modifier
@@ -539,7 +574,7 @@ fun FilterItem(
 
             CardSecondText(
                 text = text,
-                textColor = categoryColor.colorSecondBg.copy(alpha = disabledAlpha.value)
+                textColor = foregroundColor.copy(alpha = disabledAlpha.value)
             )
             Box {
                 value?.let {

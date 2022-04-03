@@ -1,15 +1,13 @@
-package com.akhilasdeveloper.bored.ui.screens.homescreen
+package com.akhilasdeveloper.bored.ui.screens.home
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.cachedIn
 import com.akhilasdeveloper.bored.api.response.ApiResponse
 import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.CategoryColorItem
-import com.akhilasdeveloper.bored.data.CategoryData
 import com.akhilasdeveloper.bored.data.mapper.BoredResponseMapper
 import com.akhilasdeveloper.bored.data.mapper.BoredTableMapper
 import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
@@ -20,14 +18,12 @@ import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
 import com.akhilasdeveloper.bored.util.FilterCardFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.reflect.full.declaredMembers
 
 @HiltViewModel
 class HomeViewModel
@@ -86,7 +82,6 @@ class HomeViewModel
                             }
                             is ApiResponse.Loading<*> -> {
                                 loadingState.value = true
-                                errorState.value = null
                             }
                         }
                     }

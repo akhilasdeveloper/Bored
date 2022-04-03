@@ -27,8 +27,9 @@ import androidx.navigation.compose.rememberNavController
 import com.akhilasdeveloper.bored.data.CategoryColorItem
 import com.akhilasdeveloper.bored.ui.screens.ActivitiesScreen
 import com.akhilasdeveloper.bored.ui.screens.HomeScreen
+import com.akhilasdeveloper.bored.ui.screens.about.AboutScreen
 import com.akhilasdeveloper.bored.ui.screens.activities.ActivitiesViewModel
-import com.akhilasdeveloper.bored.ui.screens.homescreen.HomeViewModel
+import com.akhilasdeveloper.bored.ui.screens.home.HomeViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -85,7 +86,7 @@ class MainActivity : ComponentActivity() {
                         ActivitiesScreen(viewModel = activitiesViewModel)
                     }
                     composable(BottomBarScreen.About.route) {
-
+                        AboutScreen(viewModel = viewModel)
                     }
                 }
                 BottomBar(navController = navController, categoryColor = categoryColor.value)

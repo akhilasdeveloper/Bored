@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,8 +35,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.CategoryColorItem
 import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
-import com.akhilasdeveloper.bored.ui.screens.homescreen.FilterCard
-import com.akhilasdeveloper.bored.ui.screens.homescreen.HomeViewModel
+import com.akhilasdeveloper.bored.ui.screens.home.FilterCard
+import com.akhilasdeveloper.bored.ui.screens.home.HomeViewModel
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
 import kotlinx.coroutines.delay
@@ -430,6 +431,7 @@ fun CardSecondText(
     fontSize: TextUnit = secondaryFontSize.sp,
     textAlign: TextAlign = TextAlign.Center,
     textDecoration: TextDecoration = TextDecoration.None,
+    fontWeight: FontWeight = FontWeight.ExtraBold,
     animIsHorizontal: Boolean = false
 ) {
     AnimatedVisibility(
@@ -447,7 +449,7 @@ fun CardSecondText(
                 text = text,
                 style = TextStyle(
                     color = textColor,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = fontWeight,
                     fontSize = fontSize,
                     textDecoration = textDecoration
                 ),
@@ -462,7 +464,7 @@ fun MoreContent(
     cardDao: CardDao,
     categoryColor: CategoryColorItem
 ) {
-
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -470,7 +472,15 @@ fun MoreContent(
         horizontalAlignment = Alignment.Start,
     ) {
         CardSecondText(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.clickable(
+                indication = rememberRipple(color = categoryColor.colorFg),
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = {
+                    cardDao.link?.let {
+                        uriHandler.openUri(it)
+                    }
+                }
+            ).padding(12.dp),
             text = cardDao.link,
             textColor = categoryColor.colorSecondFg
         )
