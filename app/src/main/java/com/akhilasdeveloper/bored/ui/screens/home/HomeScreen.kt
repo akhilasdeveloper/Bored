@@ -82,7 +82,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     text = "Tap to Retry",
                     isSelected = viewModel.addSelected.value,
                     modifier = Modifier.weight(1f),
-                    transparentValue = MaterialTheme.colors.onBackground.copy(alpha = 0f),
+                    transparentValue = MaterialTheme.colors.background.copy(alpha = 0f),
                     alignTextCenter = true
                 ) {
                     viewModel.getRandomActivity()
@@ -99,7 +99,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
 
             if (errorState.value == null) {
                 cards.forEachIndexed { index, card ->
-
                     CardView(
                         cardDao = card,
                         cardState = cardStates[index],
@@ -118,7 +117,12 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     )
                 }
             } else {
-                CardSecondText(text = errorState.value, textColor = MaterialTheme.colors.primary)
+                Text(
+                    text = errorState.value!!,
+                    style = MaterialTheme.typography.h6,
+                    color = MaterialTheme.colors.primary,
+                    textAlign = TextAlign.Center
+                )
             }
 
             LoadingProgress(
@@ -141,12 +145,14 @@ fun SelectionButton(
     alignTextCenter: Boolean = false,
     onClicked: () -> Unit
 ) {
-    var fontSize by remember { mutableStateOf(selectionDeselectedFontSize) }
+    val fontSizeFrom = MaterialTheme.typography.h6.fontSize.value.toInt()
+    val fontSizeTo = MaterialTheme.typography.h4.fontSize.value.toInt()
+    var fontSize by remember { mutableStateOf(fontSizeFrom) }
     val animFontSize by animateIntAsState(targetValue = fontSize)
     val animSelectionColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else transparentValue)
 
     SideEffect {
-        fontSize = if (isSelected) selectionSelectedFontSize else selectionDeselectedFontSize
+        fontSize = if (isSelected) fontSizeTo else fontSizeFrom
     }
 
     Box(
@@ -163,19 +169,19 @@ fun SelectionButton(
     )
     {
         if (!alignTextCenter) {
-            CardSecondText(
+            Text(
+                modifier = Modifier.padding(20.dp),
                 text = text,
-                textColor = MaterialTheme.colors.onBackground,
-                fontSize = animFontSize.sp,
-                modifier = Modifier.padding(20.dp)
+                style = MaterialTheme.typography.subtitle1.copy(fontSize = animFontSize.sp),
+                color = MaterialTheme.colors.onBackground
             )
         } else {
             Box(Modifier.fillMaxSize(.5f), contentAlignment = Alignment.Center) {
-                CardSecondText(
+                Text(
+                    modifier = Modifier.padding(20.dp),
                     text = text,
-                    textColor = MaterialTheme.colors.onBackground,
-                    fontSize = animFontSize.sp,
-                    modifier = Modifier.padding(20.dp)
+                    style = MaterialTheme.typography.h6.copy(fontSize = animFontSize.sp),
+                    color = MaterialTheme.colors.onBackground
                 )
             }
         }
@@ -393,6 +399,31 @@ fun CardView(
 }
 
 @Composable
+fun HideableSubTitleText(
+    modifier: Modifier = Modifier,
+    text: String?
+) {
+    AnimatedVisibility(
+        visible = !text.isNullOrEmpty(),
+        enter = expandVertically(
+            animationSpec = tween(durationMillis = 500)
+        ),
+        exit = shrinkVertically(
+            animationSpec = tween(durationMillis = 500)
+        )
+    ) {
+        text?.let {
+            Text(
+                modifier = modifier,
+                text = text,
+                style = MaterialTheme.typography.subtitle1,
+                color = MaterialTheme.colors.onSurface
+            )
+        }
+    }
+}
+
+@Composable
 fun CardSecondText(
     modifier: Modifier = Modifier,
     text: String?,
@@ -440,30 +471,29 @@ fun MoreContent(
             .padding(20.dp),
         horizontalAlignment = Alignment.Start,
     ) {
-        CardSecondText(
-            modifier = Modifier
-                .clickable(
-                    indication = rememberRipple(color = MaterialTheme.colors.onSurface),
-                    interactionSource = remember { MutableInteractionSource() },
-                    onClick = {
-                        cardDao.link?.let {
-                            uriHandler.openUri(it)
-                        }
-                    }
-                )
-                .padding(12.dp),
-            text = cardDao.link,
-            textColor = MaterialTheme.colors.onSurface
-        )
-        CardSecondText(
+
+        HideableSubTitleText(text = cardDao.link, modifier = Modifier
+            .clickable(
+                indication = rememberRipple(color = MaterialTheme.colors.onSurface),
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = {
+                    uriHandler.openUri(cardDao.link!!)
+                }
+            )
+            .fillMaxWidth()
+            .padding(20.dp))
+
+        Text(
             modifier = Modifier.padding(12.dp),
             text = "Type : ${cardDao.type}",
-            textColor = MaterialTheme.colors.onSurface
+            style = MaterialTheme.typography.subtitle1,
+            color = MaterialTheme.colors.onSurface
         )
-        CardSecondText(
+        Text(
             modifier = Modifier.padding(12.dp),
             text = "Participants : ${cardDao.participants}",
-            textColor = MaterialTheme.colors.onSurface
+            style = MaterialTheme.typography.subtitle1,
+            color = MaterialTheme.colors.onSurface
         )
         Spacer(modifier = Modifier.padding(10.dp))
         Row(
@@ -501,7 +531,6 @@ fun MoreContent(
 @Composable
 fun LinearProgressBar(
     percentage: Float?,
-    fontSize: TextUnit = secondaryFontSize.sp,
     color: Color,
     colorSecond: Color = MaterialTheme.colors.onSurface.copy(alpha = .1f),
     fontColor: Color = Color.White,
@@ -552,11 +581,12 @@ fun LinearProgressBar(
             }
         }
 
-        CardSecondText(
+        Text(
             modifier = Modifier.padding(8.dp),
             text = "$text ${(curPercentage.value * 100).roundToInt()} %",
-            textColor = fontColor,
-            fontSize = fontSize
+            style = MaterialTheme.typography.subtitle1,
+            color = fontColor,
+            textAlign = TextAlign.Center
         )
     }
 

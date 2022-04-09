@@ -1,6 +1,7 @@
 package com.akhilasdeveloper.bored.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -34,31 +36,63 @@ fun FilterCard(viewModel: HomeViewModel) {
 
     val expanded = remember { mutableStateOf(false) }
 
+    val stateRandomIsChecked = viewModel.stateRandomIsChecked.collectAsState(initial = false)
+    val stateTypeIsChecked = viewModel.stateTypeIsChecked.collectAsState(initial = false)
+    val stateParticipantsIsChecked =
+        viewModel.stateParticipantsIsChecked.collectAsState(initial = false)
+    val statePriceRangeIsChecked =
+        viewModel.statePriceRangeIsChecked.collectAsState(initial = false)
+    val stateAccessibilityRangeIsChecked =
+        viewModel.stateAccessibilityRangeIsChecked.collectAsState(initial = false)
+
+    val isFilterOn = derivedStateOf {
+        !stateRandomIsChecked.value &&
+                (stateTypeIsChecked.value ||
+                        stateParticipantsIsChecked.value ||
+                        statePriceRangeIsChecked.value ||
+                        stateAccessibilityRangeIsChecked.value)
+    }
+
     Box(
         Modifier
             .fillMaxSize()
             .padding(20.dp), contentAlignment = Alignment.BottomCenter
     ) {
-        Card(
-            shape = RoundedCornerShape(100.dp),
-            backgroundColor = MaterialTheme.colors.primary
-        ) {
+        Box {
+            Card(
+                shape = RoundedCornerShape(100.dp),
+                backgroundColor = MaterialTheme.colors.primary
+            ) {
 
-            Icon(
-                imageVector = Icons.Rounded.FilterAlt,
-                contentDescription = "Category Icon",
-                tint = MaterialTheme.colors.onPrimary,
-                modifier = Modifier
-                    .clickable(
-                        indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = {
-                            expanded.value = true
-                        }
-                    )
-                    .padding(10.dp)
-            )
+                Icon(
+                    imageVector = Icons.Rounded.FilterAlt,
+                    contentDescription = "Category Icon",
+                    tint = MaterialTheme.colors.onPrimary,
+                    modifier = Modifier
+                        .clickable(
+                            indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = {
+                                expanded.value = true
+                            }
+                        )
+                        .padding(10.dp)
+                )
+
+            }
+
+            if (isFilterOn.value)
+                Spacer(
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .clip(RoundedCornerShape(100.dp))
+                        .border(width = 1.dp, color = MaterialTheme.colors.primary,shape = RoundedCornerShape(100.dp))
+                        .background(color = MaterialTheme.colors.onPrimary)
+                        .padding(5.dp)
+                        .align(Alignment.TopEnd)
+                )
         }
+
 
         FilterContents(
             viewModel = viewModel,
@@ -130,60 +164,60 @@ fun MainFilterContents(
             }
         )
 
-        ExposedDropDown(expanded = typeExpanded,foregroundColor = foregroundColor,
+        ExposedDropDown(expanded = typeExpanded, foregroundColor = foregroundColor,
             backgroundColor = backgroundColor, headerItem = {
-            FilterItem(
-                text = "Type",
-                foregroundColor = foregroundColor,
-                backgroundColor = backgroundColor,
-                isDisabled = stateRandomIsChecked.value,
-                icon = categoryMainData.value.icon,
-                iconColor = categoryMainTheme.value,
-                isChecked = viewModel.stateTypeIsChecked.collectAsState(false).value,
-                onChecked = {
-                    viewModel.setTypeIsChecked(it)
-                }, onClicked = {
-                    typeExpanded.value = !typeExpanded.value
-                }
-            )
-        }, dropDownItem = { contentItem ->
-            viewModel.types.value.forEach { category ->
+                FilterItem(
+                    text = "Type",
+                    foregroundColor = foregroundColor,
+                    backgroundColor = backgroundColor,
+                    isDisabled = stateRandomIsChecked.value,
+                    icon = categoryMainData.value.icon,
+                    iconColor = categoryMainTheme.value,
+                    isChecked = viewModel.stateTypeIsChecked.collectAsState(false).value,
+                    onChecked = {
+                        viewModel.setTypeIsChecked(it)
+                    }, onClicked = {
+                        typeExpanded.value = !typeExpanded.value
+                    }
+                )
+            }, dropDownItem = { contentItem ->
+                viewModel.types.value.forEach { category ->
 
-                val categoryTheme =
-                    derivedStateOf { if (viewModel.isLightTheme) category.categoryColor.colorLight else category.categoryColor.colorDark }
+                    val categoryTheme =
+                        derivedStateOf { if (viewModel.isLightTheme) category.categoryColor.colorLight else category.categoryColor.colorDark }
 
-                contentItem(onClick = {
-                    viewModel.setTypeValue(category.key)
-                }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = category.icon,
-                            contentDescription = "Category Icon",
-                            tint = MaterialTheme.colors.onPrimary,
-                            modifier = Modifier
-                                .padding(
-                                    top = 8.dp,
-                                    bottom = 8.dp,
-                                    start = 8.dp
-                                )
-                                .clip(RoundedCornerShape(100.dp))
-                                .background(color = categoryTheme.value)
-                                .padding(5.dp)
-                        )
+                    contentItem(onClick = {
+                        viewModel.setTypeValue(category.key)
+                    }) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = category.icon,
+                                contentDescription = "Category Icon",
+                                tint = MaterialTheme.colors.onPrimary,
+                                modifier = Modifier
+                                    .padding(
+                                        top = 8.dp,
+                                        bottom = 8.dp,
+                                        start = 8.dp
+                                    )
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(color = categoryTheme.value)
+                                    .padding(5.dp)
+                            )
 
-                        CardSecondText(
-                            modifier = Modifier
-                                .padding(8.dp),
-                            text = category.title,
-                            textColor = foregroundColor,
-                            textAlign = TextAlign.Start
-                        )
+                            Text(
+                                modifier = Modifier.padding(8.dp),
+                                text = category.title,
+                                style = MaterialTheme.typography.subtitle1,
+                                color = foregroundColor
+                            )
+
+                        }
                     }
                 }
-            }
-        })
+            })
 
         ExposedDropDown(
             expanded = participantsExpanded,
@@ -211,12 +245,11 @@ fun MainFilterContents(
                             participantsExpanded.value = false
                         }) {
 
-                        CardSecondText(
-                            modifier = Modifier
-                                .padding(8.dp),
+                        Text(
+                            modifier = Modifier.padding(8.dp),
                             text = "$it",
-                            textColor = foregroundColor,
-                            textAlign = TextAlign.Start
+                            style = MaterialTheme.typography.subtitle1,
+                            color = foregroundColor
                         )
 
                     }
@@ -318,12 +351,11 @@ fun SliderDialog(
             onOk(rangeSlider.value)
         }, content = {
             Column(Modifier.padding(12.dp)) {
-                CardSecondText(
-                    modifier = Modifier
-                        .padding(8.dp),
+                Text(
+                    modifier = Modifier.padding(8.dp),
                     text = "From ${(rangeSlider.value.start * 100).roundToInt()} To ${(rangeSlider.value.endInclusive * 100).roundToInt()}%",
-                    textColor = foregroundColor,
-                    textAlign = TextAlign.Start
+                    style = MaterialTheme.typography.subtitle1,
+                    color = foregroundColor
                 )
                 RangeSlider(
                     steps = 100,
@@ -441,15 +473,15 @@ fun ContentDialog(
                                     .padding(5.dp)
                             )
                         }
-                        CardSecondText(
-                            text = title,
-                            textColor = MaterialTheme.colors.onPrimary,
+                        Text(
                             modifier = Modifier.padding(
                                 top = 18.dp,
                                 bottom = 18.dp,
                                 start = titlePadding.value
                             ),
-                            fontSize = 18.sp
+                            text = title,
+                            style = MaterialTheme.typography.h6,
+                            color = MaterialTheme.colors.onPrimary
                         )
                     }
                     Box(Modifier.padding(12.dp)) {
@@ -461,24 +493,7 @@ fun ContentDialog(
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        onCancel?.let {
-                            CardSecondText(
-                                text = "Cancel",
-                                textColor = MaterialTheme.colors.onPrimary,
-                                modifier = Modifier
-                                    .clickable(indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
-                                        interactionSource = remember { MutableInteractionSource() }) {
-                                        onCancel.invoke()
-                                        isExpanded.value = false
-                                    }
-                                    .fillMaxWidth(.5f)
-                                    .padding(12.dp),
-                                fontSize = 18.sp
-                            )
-                        }
-                        CardSecondText(
-                            text = "OK",
-                            textColor = MaterialTheme.colors.onPrimary,
+                        Text(
                             modifier = Modifier
                                 .clickable(indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
                                     interactionSource = remember { MutableInteractionSource() }) {
@@ -487,7 +502,10 @@ fun ContentDialog(
                                 }
                                 .fillMaxWidth()
                                 .padding(12.dp),
-                            fontSize = 18.sp
+                            text = "OK",
+                            style = MaterialTheme.typography.h6,
+                            color = MaterialTheme.colors.onPrimary,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -554,20 +572,26 @@ fun FilterItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
 
-            CardSecondText(
+            Text(
                 text = text,
-                textColor = foregroundColor.copy(alpha = disabledAlpha.value)
+                style = MaterialTheme.typography.subtitle1,
+                color = foregroundColor.copy(alpha = disabledAlpha.value),
+                textAlign = TextAlign.Center
             )
+
             Box {
                 value?.let {
-                    CardSecondText(
+
+                    Text(
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
                             .background(MaterialTheme.colors.primary.copy(alpha = disabledAlpha.value))
                             .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
                         text = value,
-                        textColor = foregroundColor.copy(alpha = disabledAlpha.value)
+                        style = MaterialTheme.typography.subtitle1,
+                        color = foregroundColor.copy(alpha = disabledAlpha.value),
+                        textAlign = TextAlign.Center
                     )
                 }
 

@@ -35,8 +35,8 @@ private val LightColorPalette = lightColors(
     surface = Grey50,
     error = Red500,
     onPrimary = Grey50,
-    onSecondary = Grey900,
-    onBackground = Grey900,
+    onSecondary = Grey800,
+    onBackground = Grey800,
     onSurface = Grey800,
     onError = Grey50
 )

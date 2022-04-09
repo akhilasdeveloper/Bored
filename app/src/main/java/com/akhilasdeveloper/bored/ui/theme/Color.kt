@@ -18,7 +18,7 @@ val Grey950 = Color(0xFF101010)
 val Red600 = Color(0xFFE53935)
 val Red500 = Color(0xFFF44336)
 
-val accentColor = Color(0xFFDD205E)
+val accentColor = Pink500
 val onAccentColor = Color(0xFFEBEBEB)
 
 val categoryValueColor1 = CategoryColors(

@@ -10,6 +10,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -22,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.akhilasdeveloper.bored.data.mapper.ThemeValueMapper
 import com.akhilasdeveloper.bored.ui.screens.activities.ActivitiesScreen
 import com.akhilasdeveloper.bored.ui.screens.home.HomeScreen
 import com.akhilasdeveloper.bored.ui.screens.about.AboutScreen
@@ -49,8 +52,18 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             val categoryTypeItem = viewModel.categoryTypeItem
+            val theme = viewModel.currentTheme.collectAsState(
+                initial = ThemeValueMapper.getSystemInDarkValueFromBoolean(
+                    isSystemInDarkTheme()
+                )
+            )
 
-            BoredTheme(categoryTheme = categoryTypeItem) {
+            val  isSystemInDarkTheme = isSystemInDarkTheme()
+
+            val isDarkTheme = derivedStateOf { ThemeValueMapper.getSystemInDarkValueFromConst(theme.value) ?: isSystemInDarkTheme }
+
+            BoredTheme(categoryTheme = categoryTypeItem,
+            darkTheme = isDarkTheme.value) {
 
                 viewModel.setIsLightTheme(!isSystemInDarkTheme())
 
@@ -69,7 +82,8 @@ class MainActivity : ComponentActivity() {
 
                 Column(
                     modifier = Modifier
-                        .fillMaxSize().background(MaterialTheme.colors.background),
+                        .fillMaxSize()
+                        .background(MaterialTheme.colors.background),
                     verticalArrangement = Arrangement.Bottom
                 ) {
 

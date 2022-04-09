@@ -16,6 +16,7 @@ import com.akhilasdeveloper.bored.util.Constants.ADD_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
 import com.akhilasdeveloper.bored.util.FilterCardFunctions
+import com.akhilasdeveloper.bored.util.ThemeFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -28,7 +29,8 @@ import javax.inject.Inject
 class HomeViewModel
 @Inject constructor(
     private val boredApiRepository: BoredApiRepository,
-    private val filterCardFunctions: FilterCardFunctions
+    private val filterCardFunctions: FilterCardFunctions,
+    private val themeFunctions: ThemeFunctions,
 ) : ViewModel() {
 
     val cards = mutableStateListOf<CardDao>()
@@ -169,6 +171,15 @@ class HomeViewModel
             boredApiRepository.insertActivity(
                 boredTable = BoredTableMapper(state = selection).toSourceFromDestination(destination = card)
             )
+        }
+    }
+
+    //Theme Data
+    val currentTheme = themeFunctions.getCurrentThemeValue()
+
+    fun setCurrentThemeValue(value: Int) {
+        viewModelScope.launch {
+            themeFunctions.setCurrentThemeValue(value)
         }
     }
 

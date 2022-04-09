@@ -6,14 +6,14 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.akhilasdeveloper.bored.R
 
-val BalooBhaijaan2FontFamily = FontFamily(
+val NunitoFontFamily = FontFamily(
 
     fonts = listOf(
         Font(
-            resId = R.font.baloo_bhaijaan2_regular,
+            resId = R.font.nunito_bold,
             weight = FontWeight.W100,
             style = FontStyle.Normal
-        ),
+        )/*,
         Font(
             resId = R.font.baloo_bhaijaan2_bold,
             weight = FontWeight.W700,
@@ -33,6 +33,6 @@ val BalooBhaijaan2FontFamily = FontFamily(
             resId = R.font.baloo_bhaijaan2_x_bold,
             weight = FontWeight.W900,
             style = FontStyle.Normal
-        )
+        )*/
     )
 )

@@ -220,18 +220,19 @@ fun ActivityItem(
                             .padding(5.dp)
                     )
 
-                    CardSecondText(
+                    Text(
                         modifier = Modifier
                             .padding(
                                 top = 8.dp,
                                 bottom = 8.dp,
                                 start = 12.dp
                             ),
-                        text = cardDao.activityName,
-                        textColor = MaterialTheme.colors.onSurface,
-                        textAlign = TextAlign.Start,
+                        text = cardDao.activityName!!,
+                        style = MaterialTheme.typography.subtitle1,
+                        color = MaterialTheme.colors.onSurface,
                         textDecoration = textDecoration
                     )
+
                 }
             }
             AnimatedVisibility(
@@ -369,7 +370,8 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                                     .padding(5.dp)
                             )
                         }else{
-                            CardSecondText(
+
+                            Text(
                                 modifier = Modifier
                                     .padding(top = 8.dp, bottom = 8.dp, start = 10.dp)
                                     .scale(rightScaleValue.value)
@@ -377,8 +379,10 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                                     .background(categoryColor.copy(alpha = rightDragValue))
                                     .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
                                 text = if (isTODO) "Skip" else "TODO",
-                                textColor = onAccentColor.copy(alpha = rightDragValue)
+                                style = MaterialTheme.typography.subtitle1,
+                                color = onAccentColor.copy(alpha = rightDragValue)
                             )
+
                         }
 
 
