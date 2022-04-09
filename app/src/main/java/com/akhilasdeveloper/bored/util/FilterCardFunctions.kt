@@ -4,7 +4,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.akhilasdeveloper.bored.data.CategoryData
+import com.akhilasdeveloper.bored.data.CategoryValueData
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -54,11 +54,11 @@ class FilterCardFunctions
 
     fun getTypeValue() =
         dataStore.getValueAsFlowFromPreferencesStore(FILTER_TYPE_VALUE).map {
-            it ?: CategoryData.Invalid.key
+            it ?: CategoryValueData.Invalid.key
         }
 
     suspend fun getTypeRawValue() =
-        dataStore.getValueFromPreferencesStore(FILTER_TYPE_VALUE)?: CategoryData.Invalid.key
+        dataStore.getValueFromPreferencesStore(FILTER_TYPE_VALUE)?: CategoryValueData.Invalid.key
 
 
     //Filter Field Participants

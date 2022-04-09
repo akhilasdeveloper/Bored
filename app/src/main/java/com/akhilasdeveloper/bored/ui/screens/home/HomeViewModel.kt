@@ -7,12 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.akhilasdeveloper.bored.api.response.ApiResponse
 import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardDao
-import com.akhilasdeveloper.bored.data.CategoryColorItem
+import com.akhilasdeveloper.bored.data.CategoryValueData
 import com.akhilasdeveloper.bored.data.mapper.BoredResponseMapper
 import com.akhilasdeveloper.bored.data.mapper.BoredTableMapper
-import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
+import com.akhilasdeveloper.bored.data.mapper.CategoryValueMapper
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
-import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants.ADD_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
@@ -37,16 +36,12 @@ class HomeViewModel
     val loadingState = mutableStateOf(false)
     private var cardLoadCompletedState = true
 
+    val categoryTypeItem: MutableState<CategoryValueData> = mutableStateOf(CategoryValueData.Invalid)
+
     val errorState = mutableStateOf<String?>(null)
 
     var passSelected = mutableStateOf(false)
     var addSelected = mutableStateOf(false)
-
-    var systemBarColor = mutableStateOf(accentColor)
-    var systemBarColorFg = mutableStateOf(colorMainFg)
-    var systemBarSecondColor = mutableStateOf(accentColor)
-    var systemBarSecondColorFg = mutableStateOf(colorSecondFg)
-    var categoryColor = mutableStateOf(CategoryColorItem())
 
     var isLightTheme = true
 
@@ -97,8 +92,8 @@ class HomeViewModel
     }
 
     private fun setCurrentCard(cardDao: CardDao) {
-        CategoryMapper.toSourceFromDestination(cardDao.type).categoryColor.let { color ->
-            categoryColor.value = if (isLightTheme) color.colorLight else color.colorDark
+        CategoryValueMapper.toSourceFromDestination(cardDao.type).let {
+            categoryTypeItem.value = it
         }
     }
 
@@ -127,9 +122,6 @@ class HomeViewModel
     fun isLightColor(color: Color, threshold: Float = 0.6f) =
         calculateBrightness(color = color) >= threshold
 
-    fun transparentValue() =
-        if (!isLightTheme) colorMain.copy(alpha = 0f) else colorMainLight.copy(alpha = 0f)
-
     fun setDragSelectState(selection: Int) {
         when (selection) {
             PASS_SELECTION -> {
@@ -149,10 +141,6 @@ class HomeViewModel
 
     fun setIsLightTheme(isLight: Boolean) {
         isLightTheme = isLight
-        systemBarColor.value = if (isLight) colorSecondLight else colorSecond
-        systemBarColorFg.value = if (isLight) colorSecondLightFg else colorSecondFg
-        systemBarSecondColor.value = if (isLight) colorSecondLight else colorSecond
-        systemBarSecondColorFg.value = if (isLight) colorSecondLightFg else colorSecondFg
     }
 
     fun passSelected() {
@@ -193,7 +181,7 @@ class HomeViewModel
     val stateAccessibilityRangeIsChecked = filterCardFunctions.getAccessibilityRangeIsChecked()
 
     val stateTypeValue = filterCardFunctions.getTypeValue().map {
-        CategoryMapper.toSourceFromDestination(it)
+        CategoryValueMapper.toSourceFromDestination(it)
     }
     val stateParticipantsValue = filterCardFunctions.getParticipantsValue()
     val statePriceRangeStartValue = filterCardFunctions.getPriceRangeStartValue()
@@ -202,7 +190,7 @@ class HomeViewModel
     val stateAccessibilityRangeEndValue = filterCardFunctions.getAccessibilityRangeEndValue()
 
     val types = mutableStateOf(
-        CategoryMapper.categoriesList
+        CategoryValueMapper.categoriesList
     )
 
     //Filter Field Random

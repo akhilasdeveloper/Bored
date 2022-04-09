@@ -7,80 +7,80 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.akhilasdeveloper.bored.ui.theme.*
 
-sealed class CategoryData(
+sealed class CategoryValueData(
     val title: String,
     val icon: ImageVector,
     val key: String,
-    val categoryColor: CategoryColor
+    val categoryColor: CategoryColors
 ) {
-    object Education : CategoryData(
+    object Education : CategoryValueData(
         title = "Education",
         icon = Icons.Rounded.School,
         key = "education",
-        categoryColor = categoryColor1
+        categoryColor = categoryValueColor1
     )
 
-    object Recreational : CategoryData(
+    object Recreational : CategoryValueData(
         title = "Recreational",
         icon = Icons.Rounded.EmojiObjects,
         key = "recreational",
-        categoryColor = categoryColor2
+        categoryColor = categoryValueColor2
     )
 
-    object Social : CategoryData(
+    object Social : CategoryValueData(
         title = "Social",
         icon = Icons.Rounded.Groups,
         key = "social",
-        categoryColor = categoryColor3
+        categoryColor = categoryValueColor3
     )
 
-    object Diy : CategoryData(
+    object Diy : CategoryValueData(
         title = "Diy",
         icon = Icons.Rounded.Construction,
         key = "diy",
-        categoryColor = categoryColor4
+        categoryColor = categoryValueColor4
     )
 
-    object Charity : CategoryData(
+    object Charity : CategoryValueData(
         title = "Charity",
         icon = Icons.Rounded.VolunteerActivism,
         key = "charity",
-        categoryColor = categoryColor5
+        categoryColor = categoryValueColor5
     )
 
-    object Cooking : CategoryData(
+    object Cooking : CategoryValueData(
         title = "Cooking",
         icon = Icons.Rounded.SoupKitchen,
         key = "cooking",
-        categoryColor = categoryColor6
+        categoryColor = categoryValueColor6
     )
 
-    object Relaxation : CategoryData(
+    object Relaxation : CategoryValueData(
         title = "Relaxation",
         icon = Icons.Rounded.SelfImprovement,
         key = "relaxation",
-        categoryColor = categoryColor7
+        categoryColor = categoryValueColor7
     )
 
-    object Music : CategoryData(
+    object Music : CategoryValueData(
         title = "Music",
         icon = Icons.Rounded.MusicNote,
         key = "music",
-        categoryColor = categoryColor8
+        categoryColor = categoryValueColor8
     )
 
-    object Busywork : CategoryData(
+    object Busywork : CategoryValueData(
         title = "Busywork",
         icon = Icons.Rounded.EventBusy,
         key = "busywork",
-        categoryColor = categoryColor9
+        categoryColor = categoryValueColor9
     )
 
-    object Invalid : CategoryData(
+    object Invalid : CategoryValueData(
         title = "None",
         icon = Icons.Rounded.Error,
         key = "invalid",
-        categoryColor = categoryColorError
+        categoryColor = categoryValueColorError
     )
 
 }

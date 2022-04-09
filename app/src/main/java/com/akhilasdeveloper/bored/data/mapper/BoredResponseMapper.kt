@@ -2,16 +2,16 @@ package com.akhilasdeveloper.bored.data.mapper
 
 import com.akhilasdeveloper.bored.api.response.BoredApiResponse
 import com.akhilasdeveloper.bored.data.CardDao
-import com.akhilasdeveloper.bored.data.CategoryData
+import com.akhilasdeveloper.bored.data.CategoryValueData
 
 class BoredResponseMapper : Mapper<BoredApiResponse, CardDao> {
     override fun fromSourceToDestination(source: BoredApiResponse): CardDao = CardDao(
-        key = source.key ?: CategoryData.Invalid.key,
+        key = source.key ?: CategoryValueData.Invalid.key,
         activityName = source.activity,
         link = source.link,
         price = source.price,
         participants = source.participants,
-        type = source.type ?: CategoryData.Invalid.key,
+        type = source.type ?: CategoryValueData.Invalid.key,
         accessibility = source.accessibility,
         isCompleted = false,
         id = null,

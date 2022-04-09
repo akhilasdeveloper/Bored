@@ -22,16 +22,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.akhilasdeveloper.bored.data.CategoryColorItem
-import com.akhilasdeveloper.bored.data.CategoryData
-import com.akhilasdeveloper.bored.ui.screens.CardSecondText
+import com.akhilasdeveloper.bored.data.CategoryValueData
+import com.akhilasdeveloper.bored.ui.theme.Surface2
 import com.akhilasdeveloper.bored.util.roundToTwoDecimals
 import kotlin.math.roundToInt
 
 @ExperimentalComposeUiApi
 @ExperimentalMaterialApi
 @Composable
-fun FilterCard(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
+fun FilterCard(viewModel: HomeViewModel) {
 
     val expanded = remember { mutableStateOf(false) }
 
@@ -42,16 +41,16 @@ fun FilterCard(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
     ) {
         Card(
             shape = RoundedCornerShape(100.dp),
-            backgroundColor = categoryColor.colorBg
+            backgroundColor = MaterialTheme.colors.primary
         ) {
 
             Icon(
                 imageVector = Icons.Rounded.FilterAlt,
                 contentDescription = "Category Icon",
-                tint = categoryColor.colorFg,
+                tint = MaterialTheme.colors.onPrimary,
                 modifier = Modifier
                     .clickable(
-                        indication = rememberRipple(color = categoryColor.colorFg),
+                        indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = {
                             expanded.value = true
@@ -59,16 +58,14 @@ fun FilterCard(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
                     )
                     .padding(10.dp)
             )
-
-            FilterContents(
-                categoryColor = categoryColor,
-                viewModel = viewModel,
-                expandedMain = expanded,
-                backgroundColor = viewModel.systemBarColor.value,
-                foregroundColor = viewModel.systemBarColorFg.value
-            )
-
         }
+
+        FilterContents(
+            viewModel = viewModel,
+            expandedMain = expanded,
+            backgroundColor = MaterialTheme.colors.surface,
+            foregroundColor = MaterialTheme.colors.onSurface
+        )
     }
 }
 
@@ -76,7 +73,6 @@ fun FilterCard(categoryColor: CategoryColorItem, viewModel: HomeViewModel) {
 @ExperimentalMaterialApi
 @Composable
 fun FilterContents(
-    categoryColor: CategoryColorItem,
     viewModel: HomeViewModel,
     expandedMain: MutableState<Boolean>,
     foregroundColor: Color,
@@ -84,7 +80,6 @@ fun FilterContents(
 ) {
     ContentDialog(
         isExpanded = expandedMain,
-        categoryColor = categoryColor,
         title = "Filter",
         titleIcon = Icons.Rounded.FilterAlt,
         foregroundColor = foregroundColor,
@@ -94,7 +89,7 @@ fun FilterContents(
         },
         content = {
             MainFilterContents(
-                categoryColor = categoryColor, viewModel = viewModel,
+                viewModel = viewModel,
                 backgroundColor = backgroundColor,
                 foregroundColor = foregroundColor
             )
@@ -107,7 +102,7 @@ fun FilterContents(
 @ExperimentalMaterialApi
 @Composable
 fun MainFilterContents(
-    categoryColor: CategoryColorItem, viewModel: HomeViewModel, foregroundColor: Color,
+    viewModel: HomeViewModel, foregroundColor: Color,
     backgroundColor: Color
 ) {
 
@@ -121,12 +116,11 @@ fun MainFilterContents(
     Column(Modifier.background(backgroundColor)) {
 
         val categoryMainData =
-            viewModel.stateTypeValue.collectAsState(initial = CategoryData.Invalid)
+            viewModel.stateTypeValue.collectAsState(initial = CategoryValueData.Invalid)
         val categoryMainTheme =
             derivedStateOf { if (viewModel.isLightTheme) categoryMainData.value.categoryColor.colorLight else categoryMainData.value.categoryColor.colorDark }
 
         FilterItem(
-            categoryColor = categoryColor,
             text = "Random",
             foregroundColor = foregroundColor,
             backgroundColor = backgroundColor,
@@ -137,15 +131,14 @@ fun MainFilterContents(
         )
 
         ExposedDropDown(expanded = typeExpanded,foregroundColor = foregroundColor,
-            backgroundColor = backgroundColor, categoryColor = categoryColor, headerItem = {
+            backgroundColor = backgroundColor, headerItem = {
             FilterItem(
-                categoryColor = categoryColor,
                 text = "Type",
                 foregroundColor = foregroundColor,
                 backgroundColor = backgroundColor,
                 isDisabled = stateRandomIsChecked.value,
                 icon = categoryMainData.value.icon,
-                iconColor = categoryMainTheme.value.colorBg,
+                iconColor = categoryMainTheme.value,
                 isChecked = viewModel.stateTypeIsChecked.collectAsState(false).value,
                 onChecked = {
                     viewModel.setTypeIsChecked(it)
@@ -168,7 +161,7 @@ fun MainFilterContents(
                         Icon(
                             imageVector = category.icon,
                             contentDescription = "Category Icon",
-                            tint = categoryColor.colorFg,
+                            tint = MaterialTheme.colors.onPrimary,
                             modifier = Modifier
                                 .padding(
                                     top = 8.dp,
@@ -176,7 +169,7 @@ fun MainFilterContents(
                                     start = 8.dp
                                 )
                                 .clip(RoundedCornerShape(100.dp))
-                                .background(color = categoryTheme.value.colorBg)
+                                .background(color = categoryTheme.value)
                                 .padding(5.dp)
                         )
 
@@ -194,10 +187,8 @@ fun MainFilterContents(
 
         ExposedDropDown(
             expanded = participantsExpanded,
-            categoryColor = categoryColor,
             headerItem = {
                 FilterItem(
-                    categoryColor = categoryColor,
                     text = "Participants",
                     foregroundColor = foregroundColor,
                     backgroundColor = backgroundColor,
@@ -243,7 +234,6 @@ fun MainFilterContents(
             derivedStateOf { priceRangeStart.value..priceRangeEnd.value }
 
         FilterItem(
-            categoryColor = categoryColor,
             text = "Price Range",
             foregroundColor = foregroundColor,
             backgroundColor = backgroundColor,
@@ -259,7 +249,6 @@ fun MainFilterContents(
         )
 
         SliderDialog(title = "Accessibility Range",
-            categoryColor = categoryColor,
             initValue = priceRange,
             backgroundColor = backgroundColor,
             foregroundColor = foregroundColor,
@@ -279,7 +268,6 @@ fun MainFilterContents(
             derivedStateOf { accessibilityRangeStart.value..accessibilityRangeEnd.value }
 
         FilterItem(
-            categoryColor = categoryColor,
             text = "Accessibility Range",
             foregroundColor = foregroundColor,
             backgroundColor = backgroundColor,
@@ -294,7 +282,6 @@ fun MainFilterContents(
         )
 
         SliderDialog(title = "Accessibility Range",
-            categoryColor = categoryColor,
             initValue = accessibilityRange,
             backgroundColor = backgroundColor,
             foregroundColor = foregroundColor,
@@ -313,7 +300,6 @@ fun MainFilterContents(
 fun SliderDialog(
     title: String,
     rangeExpanded: MutableState<Boolean>,
-    categoryColor: CategoryColorItem,
     foregroundColor: Color,
     backgroundColor: Color,
     initValue: State<ClosedFloatingPointRange<Float>>,
@@ -326,7 +312,6 @@ fun SliderDialog(
     }
 
     ContentDialog(
-        categoryColor = categoryColor,
         title = title,
         widthFactor = .7f,
         onOk = {
@@ -349,10 +334,10 @@ fun SliderDialog(
                             it.start.roundToTwoDecimals()..it.endInclusive.roundToTwoDecimals()
                     },
                     colors = SliderDefaults.colors(
-                        thumbColor = categoryColor.colorBg,
-                        activeTrackColor = categoryColor.colorBg,
+                        thumbColor = MaterialTheme.colors.primary,
+                        activeTrackColor = MaterialTheme.colors.primary,
                         inactiveTrackColor = foregroundColor.copy(alpha = .5f),
-                        inactiveTickColor = categoryColor.colorBg.copy(alpha = TickAlpha),
+                        inactiveTickColor = MaterialTheme.colors.primary.copy(alpha = TickAlpha),
                     )
                 )
             }
@@ -368,7 +353,6 @@ fun SliderDialog(
 @Composable
 fun ExposedDropDown(
     expanded: MutableState<Boolean>,
-    categoryColor: CategoryColorItem,
     headerItem: @Composable () -> Unit,
     dropDownItem: @Composable (dropDownMenuItem: @Composable (onClick: () -> Unit, content: @Composable() (RowScope.() -> Unit)) -> Unit) -> Unit,
     foregroundColor: Color,
@@ -384,7 +368,7 @@ fun ExposedDropDown(
         headerItem.invoke()
 
         ExposedDropdownMenu(
-            modifier = Modifier.background(backgroundColor),
+            modifier = Modifier.background(MaterialTheme.colors.Surface2),
             expanded = expanded.value,
             onDismissRequest = {
                 expanded.value = false
@@ -392,7 +376,7 @@ fun ExposedDropDown(
         ) {
             dropDownItem { onClick, content ->
                 DropdownMenuItem(
-                    modifier = Modifier.background(backgroundColor),
+                    modifier = Modifier.background(MaterialTheme.colors.Surface2),
                     onClick = {
                         onClick.invoke()
                         expanded.value = false
@@ -408,7 +392,6 @@ fun ExposedDropDown(
 @Composable
 fun ContentDialog(
     modifier: Modifier = Modifier,
-    categoryColor: CategoryColorItem,
     title: String,
     titleIcon: ImageVector? = null,
     widthFactor: Float = .8f,
@@ -442,7 +425,7 @@ fun ContentDialog(
                 Column {
                     Row(
                         Modifier
-                            .background(categoryColor.colorBg)
+                            .background(MaterialTheme.colors.primary)
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -450,17 +433,17 @@ fun ContentDialog(
                             Icon(
                                 imageVector = imageVector,
                                 contentDescription = "Category Icon",
-                                tint = categoryColor.colorFg,
+                                tint = MaterialTheme.colors.onPrimary,
                                 modifier = Modifier
                                     .padding(top = 12.dp, bottom = 12.dp, start = 10.dp)
                                     .clip(RoundedCornerShape(100.dp))
-                                    .background(color = categoryColor.colorBg)
+                                    .background(color = MaterialTheme.colors.primary)
                                     .padding(5.dp)
                             )
                         }
                         CardSecondText(
                             text = title,
-                            textColor = categoryColor.colorFg,
+                            textColor = MaterialTheme.colors.onPrimary,
                             modifier = Modifier.padding(
                                 top = 18.dp,
                                 bottom = 18.dp,
@@ -474,16 +457,16 @@ fun ContentDialog(
                     }
                     Row(
                         Modifier
-                            .background(categoryColor.colorBg)
+                            .background(MaterialTheme.colors.primary)
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         onCancel?.let {
                             CardSecondText(
                                 text = "Cancel",
-                                textColor = categoryColor.colorFg,
+                                textColor = MaterialTheme.colors.onPrimary,
                                 modifier = Modifier
-                                    .clickable(indication = rememberRipple(color = categoryColor.colorFg),
+                                    .clickable(indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
                                         interactionSource = remember { MutableInteractionSource() }) {
                                         onCancel.invoke()
                                         isExpanded.value = false
@@ -495,9 +478,9 @@ fun ContentDialog(
                         }
                         CardSecondText(
                             text = "OK",
-                            textColor = categoryColor.colorFg,
+                            textColor = MaterialTheme.colors.onPrimary,
                             modifier = Modifier
-                                .clickable(indication = rememberRipple(color = categoryColor.colorFg),
+                                .clickable(indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
                                     interactionSource = remember { MutableInteractionSource() }) {
                                     onOk?.invoke()
                                     isExpanded.value = false
@@ -516,7 +499,6 @@ fun ContentDialog(
 
 @Composable
 fun FilterItem(
-    categoryColor: CategoryColorItem,
     text: String,
     icon: ImageVector? = null,
     value: String? = null,
@@ -526,7 +508,7 @@ fun FilterItem(
     foregroundColor: Color,
     backgroundColor: Color,
     onClicked: (() -> Unit)? = null,
-    iconColor: Color = categoryColor.colorBg,
+    iconColor: Color = MaterialTheme.colors.primary,
     attachComposable: @Composable() (() -> Unit)? = null
 ) {
 
@@ -546,7 +528,7 @@ fun FilterItem(
             colors = CheckboxDefaults.colors(
                 checkedColor = backgroundColor.copy(alpha = disabledAlpha.value),
                 uncheckedColor = foregroundColor.copy(alpha = disabledAlpha.value),
-                checkmarkColor = categoryColor.colorBg.copy(alpha = disabledAlpha.value)
+                checkmarkColor = MaterialTheme.colors.primary.copy(alpha = disabledAlpha.value)
             ),
             modifier = Modifier
                 .padding(
@@ -559,7 +541,7 @@ fun FilterItem(
                 .let {
                     return@let if (!isDisabled && onClicked != null) {
                         it.clickable(
-                            indication = rememberRipple(color = categoryColor.colorBg),
+                            indication = rememberRipple(color = foregroundColor),
                             interactionSource = remember { MutableInteractionSource() },
                         ) {
                             onClicked.invoke()
@@ -582,10 +564,10 @@ fun FilterItem(
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
-                            .background(categoryColor.colorBg.copy(alpha = disabledAlpha.value))
+                            .background(MaterialTheme.colors.primary.copy(alpha = disabledAlpha.value))
                             .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
                         text = value,
-                        textColor = categoryColor.colorFg.copy(alpha = disabledAlpha.value)
+                        textColor = foregroundColor.copy(alpha = disabledAlpha.value)
                     )
                 }
 
@@ -593,7 +575,7 @@ fun FilterItem(
                     Icon(
                         imageVector = icon,
                         contentDescription = "Category Icon",
-                        tint = categoryColor.colorFg.copy(alpha = disabledAlpha.value),
+                        tint = MaterialTheme.colors.onPrimary.copy(alpha = disabledAlpha.value),
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))

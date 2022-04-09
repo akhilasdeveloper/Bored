@@ -1,4 +1,4 @@
-package com.akhilasdeveloper.bored.ui.screens
+package com.akhilasdeveloper.bored.ui.screens.home
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -33,10 +33,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akhilasdeveloper.bored.data.CardDao
-import com.akhilasdeveloper.bored.data.CategoryColorItem
-import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
-import com.akhilasdeveloper.bored.ui.screens.home.FilterCard
-import com.akhilasdeveloper.bored.ui.screens.home.HomeViewModel
+import com.akhilasdeveloper.bored.data.mapper.CategoryValueMapper
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
 import kotlinx.coroutines.delay
@@ -51,7 +48,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val cardStates = viewModel.cardStates
     val cards = viewModel.cards
     val errorState = viewModel.errorState
-    val categoryColor = viewModel.categoryColor.value
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -60,8 +56,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(color = viewModel.transparentValue()),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (errorState.value == null) {
@@ -70,9 +65,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     text = "Skip",
                     isSelected = viewModel.passSelected.value,
                     modifier = Modifier.weight(1f),
-                    accent = categoryColor.colorBg,
-                    accentFg = viewModel.systemBarColorFg.value,
-                    transparentValue = viewModel.transparentValue()
+                    transparentValue = MaterialTheme.colors.background.copy(alpha = 0f)
                 ) {
                     viewModel.passSelected()
                 }
@@ -80,20 +73,16 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     text = "TODO",
                     isSelected = viewModel.addSelected.value,
                     modifier = Modifier.weight(1f),
-                    accent = categoryColor.colorBg,
-                    accentFg = viewModel.systemBarColorFg.value,
-                    transparentValue = viewModel.transparentValue()
+                    transparentValue = MaterialTheme.colors.background.copy(alpha = 0f)
                 ) {
                     viewModel.addSelected()
                 }
-            }else{
+            } else {
                 SelectionButton(
                     text = "Tap to Retry",
                     isSelected = viewModel.addSelected.value,
                     modifier = Modifier.weight(1f),
-                    accent = categoryColor.colorBg,
-                    accentFg = viewModel.systemBarColorFg.value,
-                    transparentValue = viewModel.transparentValue(),
+                    transparentValue = MaterialTheme.colors.onBackground.copy(alpha = 0f),
                     alignTextCenter = true
                 ) {
                     viewModel.getRandomActivity()
@@ -125,21 +114,20 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                         },
                         onDragSelect = {
                             viewModel.setDragSelectState(it)
-                        },
-                        categoryColor = categoryColor
+                        }
                     )
                 }
-            }else{
-                CardSecondText(text = errorState.value, textColor = categoryColor.colorBg)
+            } else {
+                CardSecondText(text = errorState.value, textColor = MaterialTheme.colors.primary)
             }
 
             LoadingProgress(
-                color = categoryColor.colorBg,
+                color = MaterialTheme.colors.primary,
                 visibility = viewModel.loadingState.value
             )
         }
 
-        FilterCard(categoryColor = categoryColor, viewModel = viewModel)
+        FilterCard(viewModel = viewModel)
 
     }
 }
@@ -150,20 +138,15 @@ fun SelectionButton(
     text: String,
     isSelected: Boolean = false,
     transparentValue: Color,
-    accent: Color,
-    accentFg: Color,
     alignTextCenter: Boolean = false,
     onClicked: () -> Unit
 ) {
     var fontSize by remember { mutableStateOf(selectionDeselectedFontSize) }
-    var selectionColor by remember { mutableStateOf(transparentValue) }
     val animFontSize by animateIntAsState(targetValue = fontSize)
-    val animSelectionColor by animateColorAsState(targetValue = selectionColor)
+    val animSelectionColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else transparentValue)
 
     SideEffect {
         fontSize = if (isSelected) selectionSelectedFontSize else selectionDeselectedFontSize
-        selectionColor =
-            if (isSelected) accent else transparentValue
     }
 
     Box(
@@ -172,7 +155,7 @@ fun SelectionButton(
             .background(
                 animSelectionColor.copy(alpha = .3f)
             )
-            .clickable(indication = rememberRipple(color = accent),
+            .clickable(indication = rememberRipple(color = MaterialTheme.colors.primary),
                 interactionSource = remember { MutableInteractionSource() }) {
                 onClicked()
             },
@@ -182,15 +165,15 @@ fun SelectionButton(
         if (!alignTextCenter) {
             CardSecondText(
                 text = text,
-                textColor = accentFg,
+                textColor = MaterialTheme.colors.onBackground,
                 fontSize = animFontSize.sp,
                 modifier = Modifier.padding(20.dp)
             )
-        }else{
+        } else {
             Box(Modifier.fillMaxSize(.5f), contentAlignment = Alignment.Center) {
                 CardSecondText(
                     text = text,
-                    textColor = accentFg,
+                    textColor = MaterialTheme.colors.onBackground,
                     fontSize = animFontSize.sp,
                     modifier = Modifier.padding(20.dp)
                 )
@@ -219,11 +202,10 @@ fun CardView(
     onDragSelect: ((selection: Int) -> Unit)? = null,
     onRemoveCompleted: (() -> Unit)? = null,
     onLoadCompleted: (() -> Unit)? = null,
-    enableInteraction: Boolean = true,
-    categoryColor: CategoryColorItem = CategoryColorItem()
+    enableInteraction: Boolean = true
 ) {
 
-    val categoryData by derivedStateOf { CategoryMapper.toSourceFromDestination(cardDao.type) }
+    val categoryData by derivedStateOf { CategoryValueMapper.toSourceFromDestination(cardDao.type) }
 
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
@@ -289,7 +271,7 @@ fun CardView(
     ) {
         Card(
             shape = RoundedCornerShape(10.dp),
-            backgroundColor = categoryColor.colorBg,
+            backgroundColor = MaterialTheme.colors.surface,
             modifier = modifier
                 .offset {
                     if (isAnimate) IntOffset(
@@ -355,7 +337,7 @@ fun CardView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(
-                        indication = rememberRipple(color = categoryColor.colorFg),
+                        indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = {
                             moreIsVisible = !moreIsVisible
@@ -365,6 +347,7 @@ fun CardView(
             ) {
                 Row(
                     modifier = Modifier
+                        .background(MaterialTheme.colors.primary)
                         .fillMaxWidth()
                         .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -372,33 +355,34 @@ fun CardView(
                     Icon(
                         imageVector = categoryData.icon,
                         contentDescription = "Category Icon",
-                        tint = categoryColor.colorBg,
+                        tint = MaterialTheme.colors.primary,
                         modifier = Modifier
                             .padding(end = 20.dp)
                             .clip(RoundedCornerShape(100.dp))
-                            .background(color = categoryColor.colorFg)
+                            .background(color = MaterialTheme.colors.onPrimary)
                             .padding(5.dp)
                     )
                     cardDao.activityName?.let {
-                        CardPrimaryText(
+                        Text(
+                            text = it,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
-                            activityName = it,
-                            textColor = categoryColor.colorFg
+                            style = MaterialTheme.typography.h6,
+                            color = MaterialTheme.colors.onPrimary,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
                 AnimatedVisibility(
                     visible = moreIsVisible,
                     enter = expandVertically(animationSpec = tween(durationMillis = 500)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
-                    modifier = Modifier.background(categoryColor.colorSecondBg)
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreContent(
                         cardDao = cardDao,
-                        categoryColor = categoryColor
+                        accent = MaterialTheme.colors.primary
                     )
                 }
 
@@ -406,21 +390,6 @@ fun CardView(
 
         }
     }
-}
-
-
-@Composable
-fun CardPrimaryText(modifier: Modifier, activityName: String, textColor: Color) {
-    Text(
-        modifier = modifier,
-        text = activityName,
-        style = TextStyle(
-            color = textColor,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = cardFontSize.sp
-        ),
-        textAlign = TextAlign.Center
-    )
 }
 
 @Composable
@@ -462,7 +431,7 @@ fun CardSecondText(
 @Composable
 fun MoreContent(
     cardDao: CardDao,
-    categoryColor: CategoryColorItem
+    accent: Color
 ) {
     val uriHandler = LocalUriHandler.current
     Column(
@@ -472,27 +441,29 @@ fun MoreContent(
         horizontalAlignment = Alignment.Start,
     ) {
         CardSecondText(
-            modifier = Modifier.clickable(
-                indication = rememberRipple(color = categoryColor.colorFg),
-                interactionSource = remember { MutableInteractionSource() },
-                onClick = {
-                    cardDao.link?.let {
-                        uriHandler.openUri(it)
+            modifier = Modifier
+                .clickable(
+                    indication = rememberRipple(color = MaterialTheme.colors.onSurface),
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = {
+                        cardDao.link?.let {
+                            uriHandler.openUri(it)
+                        }
                     }
-                }
-            ).padding(12.dp),
+                )
+                .padding(12.dp),
             text = cardDao.link,
-            textColor = categoryColor.colorSecondFg
+            textColor = MaterialTheme.colors.onSurface
         )
         CardSecondText(
             modifier = Modifier.padding(12.dp),
             text = "Type : ${cardDao.type}",
-            textColor = categoryColor.colorSecondFg
+            textColor = MaterialTheme.colors.onSurface
         )
         CardSecondText(
             modifier = Modifier.padding(12.dp),
             text = "Participants : ${cardDao.participants}",
-            textColor = categoryColor.colorSecondFg
+            textColor = MaterialTheme.colors.onSurface
         )
         Spacer(modifier = Modifier.padding(10.dp))
         Row(
@@ -506,9 +477,9 @@ fun MoreContent(
             ) {
                 LinearProgressBar(
                     percentage = cardDao.accessibility,
-                    color = categoryColor.colorBg,
+                    color = accent,
                     text = "Accessibility",
-                    fontColor = categoryColor.colorSecondFg
+                    fontColor = MaterialTheme.colors.onSurface
                 )
             }
             Box(
@@ -518,9 +489,9 @@ fun MoreContent(
             ) {
                 LinearProgressBar(
                     percentage = cardDao.price,
-                    color = categoryColor.colorBg,
+                    color = accent,
                     text = "Price",
-                    fontColor = categoryColor.colorSecondFg
+                    fontColor = MaterialTheme.colors.onSurface
                 )
             }
         }
@@ -532,7 +503,7 @@ fun LinearProgressBar(
     percentage: Float?,
     fontSize: TextUnit = secondaryFontSize.sp,
     color: Color,
-    colorSecond: Color = colorProgressSecond,
+    colorSecond: Color = MaterialTheme.colors.onSurface.copy(alpha = .1f),
     fontColor: Color = Color.White,
     strokeWidth: Dp = 8.dp,
     size: Int = 80,

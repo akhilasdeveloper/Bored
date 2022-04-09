@@ -2,12 +2,11 @@ package com.akhilasdeveloper.bored.ui.screens.about
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,11 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.akhilasdeveloper.bored.ui.screens.CardSecondText
+import com.akhilasdeveloper.bored.ui.screens.home.CardSecondText
 import com.akhilasdeveloper.bored.ui.screens.home.HomeViewModel
 import com.akhilasdeveloper.bored.ui.theme.accentColor
-import com.akhilasdeveloper.bored.ui.theme.colorMain
-import com.akhilasdeveloper.bored.ui.theme.colorMainFg
 import com.akhilasdeveloper.bored.R
 
 @Composable
@@ -44,7 +41,7 @@ fun AboutContent() {
         Modifier
             .verticalScroll(scrollState)
             .fillMaxSize()
-            .background(colorMain)
+            .background(MaterialTheme.colors.background)
             .padding(top = 100.dp, bottom = 100.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -64,7 +61,7 @@ fun AboutContent() {
 
         CardSecondText(
             text = "Let's find you something to do",
-            textColor = colorMainFg,
+            textColor = MaterialTheme.colors.onBackground,
             fontSize = 18.sp
         )
 
@@ -75,7 +72,7 @@ fun AboutContent() {
 
         CardSecondText(
             text = "API provided by https://www.boredapi.com",
-            textColor = colorMainFg,
+            textColor = MaterialTheme.colors.onBackground,
             fontWeight = FontWeight.Bold
         )
 
@@ -86,7 +83,7 @@ fun AboutContent() {
 
         CardSecondText(
             text = "Terms",
-            textColor = colorMainFg,
+            textColor = MaterialTheme.colors.onBackground,
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Gray.copy(alpha = .5f))
@@ -234,7 +231,7 @@ fun AboutContent() {
 
         CardSecondText(
             text = "Developer Contact",
-            textColor = colorMainFg,
+            textColor = MaterialTheme.colors.onBackground,
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Gray.copy(alpha = .5f))

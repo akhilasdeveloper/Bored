@@ -1,4 +1,4 @@
-package com.akhilasdeveloper.bored.ui.screens
+package com.akhilasdeveloper.bored.ui.screens.activities
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -38,8 +38,9 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.akhilasdeveloper.bored.data.CardDao
-import com.akhilasdeveloper.bored.data.mapper.CategoryMapper
-import com.akhilasdeveloper.bored.ui.screens.activities.ActivitiesViewModel
+import com.akhilasdeveloper.bored.data.mapper.CategoryValueMapper
+import com.akhilasdeveloper.bored.ui.screens.home.CardSecondText
+import com.akhilasdeveloper.bored.ui.screens.home.MoreContent
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
 import kotlin.math.roundToInt
@@ -68,11 +69,10 @@ fun ActivityItem(
     val isSystemDarkTheme = isSystemInDarkTheme()
     val configuration = LocalConfiguration.current
 
-    val categoryData by derivedStateOf { CategoryMapper.toSourceFromDestination(cardDao.type) }
+    val categoryData by derivedStateOf { CategoryValueMapper.toSourceFromDestination(cardDao.type) }
     val categoryColor by derivedStateOf { if (isSystemDarkTheme) categoryData.categoryColor.colorDark else categoryData.categoryColor.colorLight }
     val textDecoration by derivedStateOf { if (checkBoxVisibility && cardDao.isCompleted) TextDecoration.LineThrough else TextDecoration.None }
-    val backgroundColor by derivedStateOf { if (isSystemDarkTheme) colorMain else colorMainLight }
-    val textColor by derivedStateOf { if (isSystemDarkTheme) colorMainFg else colorMainLightFg }
+
     val screenWidth by derivedStateOf { (configuration.screenWidthDp.toFloat() * (configuration.densityDpi / 160f)) }
     val cardOffset by derivedStateOf { screenWidth / 4 }
 
@@ -93,35 +93,43 @@ fun ActivityItem(
     animOffsetX.value.let { offset ->
         if (offset > 0) {
             onDraggingRight?.invoke(
-                if (offset <= cardOffset) {
-                    (offset.coerceIn(
-                        0f,
-                        cardOffset
-                    ) / cardOffset).coerceIn(0f, 1f)
-                } else if (offset >= cardOffset) {
-                    (1f - ((offset.coerceIn(
-                        cardOffset,
-                        screenWidth
-                    ) - cardOffset) / (screenWidth - cardOffset))).coerceIn(0f, 1f)
-                } else {
-                    1f
+                when {
+                    offset <= cardOffset -> {
+                        (offset.coerceIn(
+                            0f,
+                            cardOffset
+                        ) / cardOffset).coerceIn(0f, 1f)
+                    }
+                    offset >= cardOffset -> {
+                        (1f - ((offset.coerceIn(
+                            cardOffset,
+                            screenWidth
+                        ) - cardOffset) / (screenWidth - cardOffset))).coerceIn(0f, 1f)
+                    }
+                    else -> {
+                        1f
+                    }
                 }
             )
         }
         if (offset < 0) {
             onDraggingLeft?.invoke(
-                if (offset >= -cardOffset) {
-                    ((-offset).coerceIn(
-                        1f,
-                        cardOffset
-                    ) / cardOffset).coerceIn(0f, 1f)
-                }else if (offset <= -cardOffset){
-                    (1f - (((-offset).coerceIn(
-                        cardOffset,
-                        screenWidth
-                    ) - cardOffset) / (screenWidth - cardOffset))).coerceIn(0f, 1f)
-                }else{
-                    1f
+                when {
+                    offset >= -cardOffset -> {
+                        ((-offset).coerceIn(
+                            1f,
+                            cardOffset
+                        ) / cardOffset).coerceIn(0f, 1f)
+                    }
+                    offset <= -cardOffset -> {
+                        (1f - (((-offset).coerceIn(
+                            cardOffset,
+                            screenWidth
+                        ) - cardOffset) / (screenWidth - cardOffset))).coerceIn(0f, 1f)
+                    }
+                    else -> {
+                        1f
+                    }
                 }
             )
         }
@@ -129,10 +137,12 @@ fun ActivityItem(
 
 
     Card(
+        backgroundColor = MaterialTheme.colors.surface,
+        elevation = 1.dp,
         modifier = modifier
             .fillMaxWidth()
             .clickable(
-                indication = rememberRipple(color = categoryColor.colorFg),
+                indication = rememberRipple(color = MaterialTheme.colors.onSurface),
                 interactionSource = remember { MutableInteractionSource() },
                 onClick = {
                     onClicked?.invoke()
@@ -163,66 +173,73 @@ fun ActivityItem(
                     offsetX += dragAmount
                 }
             },
-        shape = RectangleShape,
-        backgroundColor = backgroundColor
+        shape = RectangleShape
     ) {
         Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(10.dp)
+
+            Card(
+                backgroundColor = MaterialTheme.colors.surface,
+                elevation = 1.dp,
+                modifier = modifier
+                    .fillMaxWidth()
             ) {
 
-                if (checkBoxVisibility) {
-                    Checkbox(
-                        checked = cardDao.isCompleted,
-                        onCheckedChange = {
-                            onChecked?.invoke(it)
-                        },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = backgroundColor,
-                            uncheckedColor = textColor,
-                            checkmarkColor = categoryColor.colorBg
-                        ),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(10.dp)
+                ) {
+
+                    if (checkBoxVisibility) {
+                        Checkbox(
+                            checked = cardDao.isCompleted,
+                            onCheckedChange = {
+                                onChecked?.invoke(it)
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color.Transparent,
+                                uncheckedColor = MaterialTheme.colors.onSurface,
+                                checkmarkColor = categoryColor
+                            ),
+                            modifier = Modifier
+                                .padding(
+                                    top = 8.dp,
+                                    bottom = 8.dp
+                                ),
+                        )
+
+                    }
+
+                    Icon(
+                        imageVector = categoryData.icon,
+                        contentDescription = "Category Icon",
+                        tint = onAccentColor,
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 8.dp, start = 10.dp)
+                            .clip(RoundedCornerShape(100.dp))
+                            .background(color = categoryColor)
+                            .padding(5.dp)
+                    )
+
+                    CardSecondText(
                         modifier = Modifier
                             .padding(
                                 top = 8.dp,
-                                bottom = 8.dp
+                                bottom = 8.dp,
+                                start = 12.dp
                             ),
+                        text = cardDao.activityName,
+                        textColor = MaterialTheme.colors.onSurface,
+                        textAlign = TextAlign.Start,
+                        textDecoration = textDecoration
                     )
-
                 }
-
-                Icon(
-                    imageVector = categoryData.icon,
-                    contentDescription = "Category Icon",
-                    tint = categoryColor.colorFg,
-                    modifier = Modifier
-                        .padding(top = 8.dp, bottom = 8.dp, start = 10.dp)
-                        .clip(RoundedCornerShape(100.dp))
-                        .background(color = categoryColor.colorBg)
-                        .padding(5.dp)
-                )
-
-                CardSecondText(
-                    modifier = Modifier
-                        .padding(
-                            top = 8.dp,
-                            bottom = 8.dp,
-                            start = 10.dp
-                        ),
-                    text = cardDao.activityName,
-                    textColor = textColor,
-                    textAlign = TextAlign.Start,
-                    textDecoration = textDecoration
-                )
             }
             AnimatedVisibility(
                 visible = isMoreVisible.value,
                 enter = expandVertically(animationSpec = tween(durationMillis = 500)),
-                exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
-                modifier = Modifier.background(categoryColor.colorSecondBg)
+                exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
             ) {
-                MoreContent(cardDao = cardDao, categoryColor = categoryColor)
+                MoreContent(cardDao = cardDao, accent = categoryColor)
             }
         }
     }
@@ -234,8 +251,8 @@ fun Tabs(viewModel: ActivitiesViewModel = viewModel()) {
     var tabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("TODO", "Skipped")
     val isDarkTheme = isSystemInDarkTheme()
-    val backgroundColor = derivedStateOf { if (isDarkTheme) colorSecondLight else colorSecond }
-    val selectedColor = derivedStateOf { if (isDarkTheme) colorSecondLightFg else colorSecondFg }
+    val backgroundColor = derivedStateOf { if (isDarkTheme) Grey50 else Grey900 }
+    val selectedColor = derivedStateOf { if (isDarkTheme) Grey900 else Grey50 }
     val unSelectedColor = derivedStateOf { selectedColor.value.copy(alpha = .5f) }
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
@@ -289,7 +306,14 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
             item?.let { card ->
 
 
-                val categoryData by derivedStateOf { CategoryMapper.toSourceFromDestination(card.type) }
+                val categoryData by derivedStateOf {
+                    CategoryValueMapper.toSourceFromDestination(
+                        card.type
+                    )
+                }
+
+                val isComplete by derivedStateOf {isTODO && card.isCompleted }
+
                 val categoryColor by derivedStateOf { if (isSystemDarkTheme) categoryData.categoryColor.colorDark else categoryData.categoryColor.colorLight }
                 var leftDragValue by remember {
                     mutableStateOf(0f)
@@ -319,6 +343,7 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
 
                 Box(
                     modifier = Modifier
+                        .background(MaterialTheme.colors.background)
                         .animateItemPlacement(
                             tween(durationMillis = 500)
                         ),
@@ -331,16 +356,31 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
 
-                        CardSecondText(
-                            modifier = Modifier
-                                .padding(top = 8.dp, bottom = 8.dp, start = 10.dp)
-                                .scale(rightScaleValue.value)
-                                .clip(RoundedCornerShape(100.dp))
-                                .background(categoryColor.colorBg.copy(alpha = rightDragValue))
-                                .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
-                            text = if (isTODO) "Skip" else "TODO",
-                            textColor = categoryColor.colorFg.copy(alpha = rightDragValue)
-                        )
+                        if (isComplete){
+                            Icon(
+                                imageVector = Icons.Rounded.Delete,
+                                contentDescription = "Category Icon",
+                                tint = Color.White.copy(alpha = rightDragValue),
+                                modifier = Modifier
+                                    .scale(rightScaleValue.value)
+                                    .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(color = Color.Red.copy(alpha = rightDragValue))
+                                    .padding(5.dp)
+                            )
+                        }else{
+                            CardSecondText(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 8.dp, start = 10.dp)
+                                    .scale(rightScaleValue.value)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(categoryColor.copy(alpha = rightDragValue))
+                                    .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
+                                text = if (isTODO) "Skip" else "TODO",
+                                textColor = onAccentColor.copy(alpha = rightDragValue)
+                            )
+                        }
+
 
                         Icon(
                             imageVector = Icons.Rounded.Delete,
@@ -362,7 +402,7 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                         }, onDraggingRight = {
                             rightDragValue = it
                         }, onDragCompleted = { isRight ->
-                            if (!isRight) {
+                            if (!isRight || isComplete) {
                                 viewModel.deleteActivityByID(id = card.id)
                             } else {
                                 if (isTODO)

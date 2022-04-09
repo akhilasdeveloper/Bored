@@ -1,38 +1,72 @@
 package com.akhilasdeveloper.bored.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import com.akhilasdeveloper.bored.data.CategoryValueData
 
 private val DarkColorPalette = darkColors(
-    primary = Purple200,
-    primaryVariant = Purple700,
-    secondary = Teal200
+    primary = Pink700,
+    primaryVariant = Pink900,
+    secondary = Grey850,
+    secondaryVariant = Grey850,
+    background = Grey900,
+    surface = Grey900,
+    error = Red600,
+    onPrimary = Grey50,
+    onSecondary = Grey50,
+    onBackground = Grey100,
+    onSurface = Grey100,
+    onError = Grey50
 )
 
 private val LightColorPalette = lightColors(
-    primary = Purple500,
-    primaryVariant = Purple700,
-    secondary = Teal200
-
-    /* Other default colors to override
-    background = Color.White,
-    surface = Color.White,
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black,
-    */
+    primary = Pink500,
+    primaryVariant = Pink700,
+    secondary = Grey100,
+    secondaryVariant = Grey100,
+    background = Grey100,
+    surface = Grey50,
+    error = Red500,
+    onPrimary = Grey50,
+    onSecondary = Grey900,
+    onBackground = Grey900,
+    onSurface = Grey800,
+    onError = Grey50
 )
 
+val Colors.Surface2
+    get() = if (isLight) Grey100 else Grey875
+
 @Composable
-fun BoredTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable() () -> Unit) {
+fun BoredTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    categoryTheme: State<CategoryValueData> = mutableStateOf(CategoryValueData.Invalid),
+    content: @Composable() () -> Unit
+) {
+
     val colors = if (darkTheme) {
-        DarkColorPalette
+        if (categoryTheme.value != CategoryValueData.Invalid) {
+            DarkColorPalette.copy(
+                primary = categoryTheme.value.categoryColor.colorDark
+            )
+        } else {
+            DarkColorPalette
+        }
     } else {
-        LightColorPalette
+        if (categoryTheme.value != CategoryValueData.Invalid) {
+            LightColorPalette.copy(
+                primary = categoryTheme.value.categoryColor.colorLight
+            )
+        } else {
+            LightColorPalette
+        }
     }
 
     MaterialTheme(
