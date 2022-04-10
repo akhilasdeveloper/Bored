@@ -1,8 +1,6 @@
 package com.akhilasdeveloper.bored.ui.screens.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -86,7 +84,11 @@ fun FilterCard(viewModel: HomeViewModel) {
                     modifier = Modifier
                         .padding(2.dp)
                         .clip(RoundedCornerShape(100.dp))
-                        .border(width = 1.dp, color = MaterialTheme.colors.primary,shape = RoundedCornerShape(100.dp))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colors.primary,
+                            shape = RoundedCornerShape(100.dp)
+                        )
                         .background(color = MaterialTheme.colors.onPrimary)
                         .padding(5.dp)
                         .align(Alignment.TopEnd)
@@ -152,7 +154,7 @@ fun MainFilterContents(
         val categoryMainData =
             viewModel.stateTypeValue.collectAsState(initial = CategoryValueData.Invalid)
         val categoryMainTheme =
-            derivedStateOf { if (viewModel.isLightTheme) categoryMainData.value.categoryColor.colorLight else categoryMainData.value.categoryColor.colorDark }
+            derivedStateOf { if (viewModel.isLightTheme.value) categoryMainData.value.categoryColor.colorLight else categoryMainData.value.categoryColor.colorDark }
 
         FilterItem(
             text = "Random",
@@ -184,7 +186,7 @@ fun MainFilterContents(
                 viewModel.types.value.forEach { category ->
 
                     val categoryTheme =
-                        derivedStateOf { if (viewModel.isLightTheme) category.categoryColor.colorLight else category.categoryColor.colorDark }
+                        derivedStateOf { if (viewModel.isLightTheme.value) category.categoryColor.colorLight else category.categoryColor.colorDark }
 
                     contentItem(onClick = {
                         viewModel.setTypeValue(category.key)
@@ -350,28 +352,29 @@ fun SliderDialog(
         onOk = {
             onOk(rangeSlider.value)
         }, content = {
-            Column(Modifier.padding(12.dp)) {
+            Column(Modifier.padding(top = 12.dp)) {
                 Text(
                     modifier = Modifier.padding(8.dp),
                     text = "From ${(rangeSlider.value.start * 100).roundToInt()} To ${(rangeSlider.value.endInclusive * 100).roundToInt()}%",
                     style = MaterialTheme.typography.subtitle1,
                     color = foregroundColor
                 )
-                RangeSlider(
-                    steps = 100,
-                    values = rangeSlider.value,
-                    onValueChange = {
-                        onValueChange(it)
-                        rangeSlider.value =
-                            it.start.roundToTwoDecimals()..it.endInclusive.roundToTwoDecimals()
-                    },
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colors.primary,
-                        activeTrackColor = MaterialTheme.colors.primary,
-                        inactiveTrackColor = foregroundColor.copy(alpha = .5f),
-                        inactiveTickColor = MaterialTheme.colors.primary.copy(alpha = TickAlpha),
+                Box(Modifier.padding(12.dp)) {
+                    RangeSlider(
+                        steps = 100,
+                        values = rangeSlider.value,
+                        onValueChange = {
+                            onValueChange(it)
+                            rangeSlider.value =
+                                it.start.roundToTwoDecimals()..it.endInclusive.roundToTwoDecimals()
+                        },
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colors.primary,
+                            activeTrackColor = backgroundColor.copy(alpha = .5f),
+                            inactiveTickColor = MaterialTheme.colors.primary,
+                        )
                     )
-                )
+                }
             }
         },
         isExpanded = rangeExpanded,
@@ -438,6 +441,7 @@ fun ContentDialog(
 
     val currentContent by rememberUpdatedState(content)
     val titlePadding = derivedStateOf { if (titleIcon == null) 18.dp else 10.dp }
+    val scrollState = rememberScrollState()
 
     if (isExpanded.value) {
 
@@ -454,7 +458,9 @@ fun ContentDialog(
                 shape = RoundedCornerShape(10.dp),
                 color = backgroundColor
             ) {
-                Column {
+                Column(
+                    Modifier.verticalScroll(scrollState)
+                ) {
                     Row(
                         Modifier
                             .background(MaterialTheme.colors.primary)
@@ -480,7 +486,7 @@ fun ContentDialog(
                                 start = titlePadding.value
                             ),
                             text = title,
-                            style = MaterialTheme.typography.h6,
+                            style = MaterialTheme.typography.subtitle1,
                             color = MaterialTheme.colors.onPrimary
                         )
                     }
@@ -503,13 +509,12 @@ fun ContentDialog(
                                 .fillMaxWidth()
                                 .padding(12.dp),
                             text = "OK",
-                            style = MaterialTheme.typography.h6,
+                            style = MaterialTheme.typography.subtitle1,
                             color = MaterialTheme.colors.onPrimary,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
-
             }
         }
     }
@@ -586,11 +591,11 @@ fun FilterItem(
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
-                            .background(MaterialTheme.colors.primary.copy(alpha = disabledAlpha.value))
+                            .background(MaterialTheme.colors.onSurface.copy(alpha = .1f))
                             .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
                         text = value,
-                        style = MaterialTheme.typography.subtitle1,
-                        color = foregroundColor.copy(alpha = disabledAlpha.value),
+                        style = MaterialTheme.typography.subtitle2,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = disabledAlpha.value),
                         textAlign = TextAlign.Center
                     )
                 }

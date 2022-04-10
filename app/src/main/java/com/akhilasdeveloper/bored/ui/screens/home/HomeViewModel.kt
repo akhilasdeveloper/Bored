@@ -15,6 +15,7 @@ import com.akhilasdeveloper.bored.repositories.BoredApiRepository
 import com.akhilasdeveloper.bored.util.Constants.ADD_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.IDLE_SELECTION
 import com.akhilasdeveloper.bored.util.Constants.PASS_SELECTION
+import com.akhilasdeveloper.bored.util.DemoFunctions
 import com.akhilasdeveloper.bored.util.FilterCardFunctions
 import com.akhilasdeveloper.bored.util.ThemeFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +32,7 @@ class HomeViewModel
     private val boredApiRepository: BoredApiRepository,
     private val filterCardFunctions: FilterCardFunctions,
     private val themeFunctions: ThemeFunctions,
+    private val demoFunctions: DemoFunctions,
 ) : ViewModel() {
 
     val cards = mutableStateListOf<CardDao>()
@@ -38,16 +40,17 @@ class HomeViewModel
     val loadingState = mutableStateOf(false)
     private var cardLoadCompletedState = true
 
-    val categoryTypeItem: MutableState<CategoryValueData> = mutableStateOf(CategoryValueData.Invalid)
+    val categoryTypeItem: MutableState<CategoryValueData> =
+        mutableStateOf(CategoryValueData.Invalid)
 
     val errorState = mutableStateOf<String?>(null)
 
     var passSelected = mutableStateOf(false)
     var addSelected = mutableStateOf(false)
 
-    var isLightTheme = true
+    var isLightTheme = mutableStateOf(true)
 
-    fun getClearAndGetActivity(){
+    fun getClearAndGetActivity() {
         clearData()
         getRandomActivity()
     }
@@ -99,7 +102,7 @@ class HomeViewModel
         }
     }
 
-    fun removeCard(cardDao: CardDao) {
+    private fun removeCard(cardDao: CardDao) {
         if (cardLoadCompletedState && cards.isNotEmpty()) {
             try {
                 val index = cards.indexOf(cardDao)
@@ -142,7 +145,7 @@ class HomeViewModel
     }
 
     fun setIsLightTheme(isLight: Boolean) {
-        isLightTheme = isLight
+        isLightTheme.value = isLight
     }
 
     fun passSelected() {
@@ -172,6 +175,73 @@ class HomeViewModel
                 boredTable = BoredTableMapper(state = selection).toSourceFromDestination(destination = card)
             )
         }
+    }
+
+    //Demo Data
+
+    private val _isCardSwipeTried = mutableStateOf(false)
+    private val _isCardTapTriedTried = mutableStateOf(false)
+    private val _isTermsDemoIsShowing = mutableStateOf(false)
+    private val _isActivityCardSwipeTriedIsShowing = mutableStateOf(false)
+
+    val isCardSwipeTried: State<Boolean>
+        get() {
+            viewModelScope.launch {
+                _isCardSwipeTried.value = demoFunctions.getCardSwipeTriedValue()
+            }
+            return _isCardSwipeTried
+        }
+
+    fun setIsCardSwipeTried() {
+        if (!_isCardSwipeTried.value)
+            viewModelScope.launch {
+                demoFunctions.setCardSwipeTriedValue(true)
+            }
+    }
+
+    val isCardTapTriedTried: State<Boolean>
+        get() {
+            viewModelScope.launch {
+                _isCardSwipeTried.value = demoFunctions.getCardTapTriedValue()
+            }
+            return _isCardSwipeTried
+        }
+
+    fun setIsCardTapTriedTried() {
+        if (!_isCardTapTriedTried.value)
+            viewModelScope.launch {
+                demoFunctions.setCardTapTriedValue(true)
+            }
+    }
+
+    val isTermsDemoIsShowing: State<Boolean>
+        get() {
+            viewModelScope.launch {
+                _isTermsDemoIsShowing.value = demoFunctions.getTermsDemoShownValue()
+            }
+            return _isTermsDemoIsShowing
+        }
+
+    fun setIsTermsDemoIsShowing() {
+        if (!_isCardTapTriedTried.value)
+            viewModelScope.launch {
+                demoFunctions.setTermsDemoShownValue(true)
+            }
+    }
+
+    val isActivityCardSwipeTriedIsShowing: State<Boolean>
+        get() {
+            viewModelScope.launch {
+                _isActivityCardSwipeTriedIsShowing.value = demoFunctions.getActivityCardSwipeTriedValue()
+            }
+            return _isActivityCardSwipeTriedIsShowing
+        }
+
+    fun setIsActivityCardSwipeTriedIsShowing() {
+        if (!_isActivityCardSwipeTriedIsShowing.value)
+            viewModelScope.launch {
+                demoFunctions.setActivityCardSwipeTriedValue(true)
+            }
     }
 
     //Theme Data

@@ -36,7 +36,11 @@ import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.mapper.CategoryValueMapper
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
+import com.akhilasdeveloper.bored.util.Constants.CARD_SWIPE_TRIED
+import com.akhilasdeveloper.bored.util.Constants.CARD_TAP_TRIED
+import com.akhilasdeveloper.bored.util.Constants.TERMS_DEMO
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
@@ -48,6 +52,9 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val cardStates = viewModel.cardStates
     val cards = viewModel.cards
     val errorState = viewModel.errorState
+    val isCardSwipeTriedIsShowing = remember { mutableStateOf(false) }
+    val isCardTapTriedIsShowing = remember { mutableStateOf(false) }
+    val isTermsDemoIsShowing = remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -68,6 +75,8 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     transparentValue = MaterialTheme.colors.background.copy(alpha = 0f)
                 ) {
                     viewModel.passSelected()
+                    if (!viewModel.isCardSwipeTried.value)
+                        isCardSwipeTriedIsShowing.value = true
                 }
                 SelectionButton(
                     text = "TODO",
@@ -76,6 +85,8 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     transparentValue = MaterialTheme.colors.background.copy(alpha = 0f)
                 ) {
                     viewModel.addSelected()
+                    if (!viewModel.isCardSwipeTried.value)
+                        isCardSwipeTriedIsShowing.value = true
                 }
             } else {
                 SelectionButton(
@@ -107,12 +118,20 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                         },
                         onSelected = {
                             viewModel.onSelected(index, it)
+                            viewModel.setIsCardSwipeTried()
                         },
                         onLoadCompleted = {
+                            if (!viewModel.isCardTapTriedTried.value)
+                                isCardTapTriedIsShowing.value = true
                             viewModel.setCardLoadingCompletedState(true)
                         },
                         onDragSelect = {
                             viewModel.setDragSelectState(it)
+                        },
+                        onMoreVisible = {
+                            viewModel.setIsCardTapTriedTried()
+                            if (!viewModel.isTermsDemoIsShowing.value)
+                                isTermsDemoIsShowing.value = true
                         }
                     )
                 }
@@ -134,6 +153,35 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         FilterCard(viewModel = viewModel)
 
     }
+
+    DemoDialog(
+        title = "Tip",
+        description = CARD_SWIPE_TRIED,
+        rangeExpanded = isCardSwipeTriedIsShowing,
+        foregroundColor = MaterialTheme.colors.surface,
+        backgroundColor = MaterialTheme.colors.onSurface
+    ) {
+    }
+    DemoDialog(
+        title = "Tip",
+        description = CARD_TAP_TRIED,
+        rangeExpanded = isCardTapTriedIsShowing,
+        foregroundColor = MaterialTheme.colors.surface,
+        backgroundColor = MaterialTheme.colors.onSurface
+    ) {
+
+    }
+
+    DemoDialog(
+        title = "Terms",
+        description = TERMS_DEMO,
+        rangeExpanded = isTermsDemoIsShowing,
+        foregroundColor = MaterialTheme.colors.surface,
+        backgroundColor = MaterialTheme.colors.onSurface
+    ) {
+        viewModel.setIsTermsDemoIsShowing()
+    }
+
 }
 
 @Composable
@@ -208,6 +256,7 @@ fun CardView(
     onDragSelect: ((selection: Int) -> Unit)? = null,
     onRemoveCompleted: (() -> Unit)? = null,
     onLoadCompleted: (() -> Unit)? = null,
+    onMoreVisible: (() -> Unit)? = null,
     enableInteraction: Boolean = true
 ) {
 
@@ -339,6 +388,7 @@ fun CardView(
                     }
                 }
         ) {
+            val composableScope = rememberCoroutineScope()
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -347,6 +397,12 @@ fun CardView(
                         interactionSource = remember { MutableInteractionSource() },
                         onClick = {
                             moreIsVisible = !moreIsVisible
+                            if (moreIsVisible) {
+                                composableScope.launch {
+                                    delay(1000)
+                                    onMoreVisible?.invoke()
+                                }
+                            }
                         }
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -383,7 +439,7 @@ fun CardView(
                 AnimatedVisibility(
                     visible = moreIsVisible,
                     enter = expandVertically(animationSpec = tween(durationMillis = 500)),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500))
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = 500)),
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
                     MoreContent(

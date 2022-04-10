@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
             BoredTheme(categoryTheme = categoryTypeItem,
             darkTheme = isDarkTheme.value) {
 
-                viewModel.setIsLightTheme(!isSystemInDarkTheme())
+                viewModel.setIsLightTheme(!isDarkTheme.value)
 
                 val systemUiController = rememberSystemUiController()
                 val navController = rememberNavController()
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(viewModel = viewModel)
                         }
                         composable(BottomBarScreen.Activities.route) {
-                            ActivitiesScreen(viewModel = activitiesViewModel)
+                            ActivitiesScreen(viewModel = activitiesViewModel, homeViewModel = viewModel)
                         }
                         composable(BottomBarScreen.About.route) {
                             AboutScreen(viewModel = viewModel)

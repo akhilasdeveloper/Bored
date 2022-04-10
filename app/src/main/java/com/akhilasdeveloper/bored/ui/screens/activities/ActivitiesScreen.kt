@@ -4,12 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +17,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -37,19 +35,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
+import androidx.paging.compose.itemsIndexed
 import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.mapper.CategoryValueMapper
 import com.akhilasdeveloper.bored.ui.screens.home.CardSecondText
+import com.akhilasdeveloper.bored.ui.screens.home.DemoDialog
+import com.akhilasdeveloper.bored.ui.screens.home.HomeViewModel
 import com.akhilasdeveloper.bored.ui.screens.home.MoreContent
 import com.akhilasdeveloper.bored.ui.theme.*
 import com.akhilasdeveloper.bored.util.Constants
 import kotlin.math.roundToInt
 
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun ActivitiesScreen(viewModel: ActivitiesViewModel = viewModel()) {
+fun ActivitiesScreen(viewModel: ActivitiesViewModel = viewModel(), homeViewModel: HomeViewModel = viewModel()) {
     Box(modifier = Modifier.fillMaxSize()) {
-        Tabs(viewModel = viewModel)
+        Tabs(viewModel = viewModel, homeViewModel = homeViewModel)
     }
 }
 
@@ -137,6 +140,7 @@ fun ActivityItem(
 
 
     Card(
+        border = BorderStroke(2.dp, if (isMoreVisible.value) categoryColor else Color.Transparent),
         backgroundColor = MaterialTheme.colors.surface,
         elevation = 1.dp,
         modifier = modifier
@@ -246,25 +250,24 @@ fun ActivityItem(
     }
 }
 
+@ExperimentalMaterialApi
+@ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @Composable
-fun Tabs(viewModel: ActivitiesViewModel = viewModel()) {
+fun Tabs(viewModel: ActivitiesViewModel = viewModel(), homeViewModel: HomeViewModel = viewModel()) {
     var tabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("TODO", "Skipped")
-    val isDarkTheme = isSystemInDarkTheme()
-    val backgroundColor = derivedStateOf { if (isDarkTheme) Grey50 else Grey900 }
-    val selectedColor = derivedStateOf { if (isDarkTheme) Grey900 else Grey50 }
-    val unSelectedColor = derivedStateOf { selectedColor.value.copy(alpha = .5f) }
+
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
             when (tabIndex) {
-                0 -> PopulateData(isTODO = true, viewModel)
-                1 -> PopulateData(isTODO = false, viewModel)
+                0 -> PopulateData(isTODO = true, viewModel, homeViewModel = homeViewModel)
+                1 -> PopulateData(isTODO = false, viewModel, homeViewModel = homeViewModel)
             }
         }
         TabRow(
             selectedTabIndex = tabIndex,
-            backgroundColor = backgroundColor.value,
+            backgroundColor = MaterialTheme.colors.onSecondary,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
                     Modifier
@@ -277,8 +280,8 @@ fun Tabs(viewModel: ActivitiesViewModel = viewModel()) {
                     selected = tabIndex == index,
                     onClick = { tabIndex = index },
                     text = { Text(text = title, fontWeight = FontWeight.ExtraBold) },
-                    selectedContentColor = selectedColor.value,
-                    unselectedContentColor = unSelectedColor.value
+                    selectedContentColor =  MaterialTheme.colors.secondary,
+                    unselectedContentColor = MaterialTheme.colors.secondary.copy(alpha = .5f)
                 )
             }
         }
@@ -286,9 +289,11 @@ fun Tabs(viewModel: ActivitiesViewModel = viewModel()) {
     }
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalMaterialApi
 @ExperimentalFoundationApi
 @Composable
-fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewModel()) {
+fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewModel(), homeViewModel: HomeViewModel = viewModel()) {
 
     val lazyActivities: LazyPagingItems<CardDao> =
         if (isTODO)
@@ -296,16 +301,29 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
         else
             viewModel.activitiesPass.collectAsLazyPagingItems()
 
-    val isSystemDarkTheme = isSystemInDarkTheme()
+    val isActivityCardSwipeTriedIsShowing = remember { mutableStateOf(false) }
 
+    DemoDialog(
+        title = "Tip",
+        description = Constants.ACTIVITY_CARD_SWIPE_TRIED,
+        rangeExpanded = isActivityCardSwipeTriedIsShowing,
+        foregroundColor = MaterialTheme.colors.surface,
+        backgroundColor = MaterialTheme.colors.onSurface
+    ) {
+
+    }
 
     LazyColumn(
         contentPadding = PaddingValues(5.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        items(items = lazyActivities, key = { it.id!! }) { item ->
+
+        itemsIndexed(items = lazyActivities, key = {index, item -> item.id!! }) { index, item ->
             item?.let { card ->
 
+                if (index == 0 && !homeViewModel.isActivityCardSwipeTriedIsShowing.value){
+                    isActivityCardSwipeTriedIsShowing.value = true
+                }
 
                 val categoryData by derivedStateOf {
                     CategoryValueMapper.toSourceFromDestination(
@@ -313,9 +331,9 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                     )
                 }
 
-                val isComplete by derivedStateOf {isTODO && card.isCompleted }
+                val isComplete by derivedStateOf { isTODO && card.isCompleted }
 
-                val categoryColor by derivedStateOf { if (isSystemDarkTheme) categoryData.categoryColor.colorDark else categoryData.categoryColor.colorLight }
+                val categoryColor by derivedStateOf { if (!homeViewModel.isLightTheme.value) categoryData.categoryColor.colorDark else categoryData.categoryColor.colorLight }
                 var leftDragValue by remember {
                     mutableStateOf(0f)
                 }
@@ -357,7 +375,7 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
 
-                        if (isComplete){
+                        if (isComplete) {
                             Icon(
                                 imageVector = Icons.Rounded.Delete,
                                 contentDescription = "Category Icon",
@@ -369,7 +387,7 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                                     .background(color = Color.Red.copy(alpha = rightDragValue))
                                     .padding(5.dp)
                             )
-                        }else{
+                        } else {
 
                             Text(
                                 modifier = Modifier
@@ -406,6 +424,7 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
                         }, onDraggingRight = {
                             rightDragValue = it
                         }, onDragCompleted = { isRight ->
+                            homeViewModel.setIsActivityCardSwipeTriedIsShowing()
                             if (!isRight || isComplete) {
                                 viewModel.deleteActivityByID(id = card.id)
                             } else {

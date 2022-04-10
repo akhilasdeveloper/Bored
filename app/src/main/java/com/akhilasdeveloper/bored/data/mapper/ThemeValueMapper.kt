@@ -1,7 +1,5 @@
 package com.akhilasdeveloper.bored.data.mapper
 
-import com.akhilasdeveloper.bored.data.CategoryValueData
-
 object ThemeValueMapper {
 
     const val SYSTEM_THEME = 4

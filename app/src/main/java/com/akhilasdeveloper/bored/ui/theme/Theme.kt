@@ -21,8 +21,8 @@ private val DarkColorPalette = darkColors(
     error = Red600,
     onPrimary = Grey50,
     onSecondary = Grey50,
-    onBackground = Grey100,
-    onSurface = Grey100,
+    onBackground = Grey300,
+    onSurface = Grey300,
     onError = Grey50
 )
 
@@ -31,18 +31,18 @@ private val LightColorPalette = lightColors(
     primaryVariant = Pink700,
     secondary = Grey100,
     secondaryVariant = Grey100,
-    background = Grey100,
+    background = Grey50,
     surface = Grey50,
     error = Red500,
     onPrimary = Grey50,
-    onSecondary = Grey800,
-    onBackground = Grey800,
-    onSurface = Grey800,
+    onSecondary = Grey875,
+    onBackground = Grey700,
+    onSurface = Grey700,
     onError = Grey50
 )
 
 val Colors.Surface2
-    get() = if (isLight) Grey100 else Grey875
+    get() = if (isLight) Grey50 else Grey875
 
 @Composable
 fun BoredTheme(
