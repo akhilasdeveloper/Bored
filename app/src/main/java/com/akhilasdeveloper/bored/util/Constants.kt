@@ -12,7 +12,7 @@ object Constants {
     const val CARD_SWIPE_TRIED =
         "Swipe the card left to add the activity to TODO and right to skip the activity."
     const val CARD_TAP_TRIED = "Tap on the card for more info about the activity"
-    const val ACTIVITY_CARD_SWIPE_TRIED = "Swipe on the cards left and right for more options"
+    const val ACTIVITY_CARD_SWIPE_TRIED = "Swipe on the cards left to delete and right to Skip/Todo"
     const val TERMS_DEMO = "Accessibility\n\n" +
             "A factor describing how possible an event is to do with zero being the most accessible. [0% to 100%]\n\n" +
             "Type\n\n" +

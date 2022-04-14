@@ -232,7 +232,7 @@ fun ActivityItem(
                                 start = 12.dp
                             ),
                         text = cardDao.activityName!!,
-                        style = MaterialTheme.typography.subtitle1,
+                        style = MaterialTheme.typography.subtitle2,
                         color = MaterialTheme.colors.onSurface,
                         textDecoration = textDecoration
                     )
@@ -307,8 +307,8 @@ fun PopulateData(isTODO: Boolean = true, viewModel: ActivitiesViewModel = viewMo
         title = "Tip",
         description = Constants.ACTIVITY_CARD_SWIPE_TRIED,
         rangeExpanded = isActivityCardSwipeTriedIsShowing,
-        foregroundColor = MaterialTheme.colors.surface,
-        backgroundColor = MaterialTheme.colors.onSurface
+        foregroundColor = MaterialTheme.colors.onSurface,
+        backgroundColor = MaterialTheme.colors.surface
     ) {
 
     }

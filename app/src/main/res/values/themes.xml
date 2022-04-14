@@ -3,10 +3,11 @@
     <style name="Theme.Bored" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">#FFFFFFFF</item>
-        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:statusBarColor" tools:targetApi="l">#FFE91E63</item>
+        <item name="android:navigationBarColor">#FFE91E63</item>
         <!-- Customize your theme here. -->
         <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:windowTranslucentNavigation">false</item>
 <!--        <item name="android:navigationBarColor">@color/purple_500</item>-->
     </style>
 

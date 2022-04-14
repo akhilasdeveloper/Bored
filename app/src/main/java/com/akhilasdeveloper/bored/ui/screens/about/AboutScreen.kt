@@ -90,7 +90,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
 
         Text(
             text = "Let's find you something to do",
-            style = MaterialTheme.typography.h5,
+            style = MaterialTheme.typography.h6,
             color = MaterialTheme.colors.onBackground,
             textAlign = TextAlign.Center
         )
@@ -99,9 +99,8 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
             modifier = Modifier
                 .padding(top = 60.dp)
         )
-        val typo1 =
-            MaterialTheme.typography.subtitle1.copy(color = MaterialTheme.colors.onBackground)
-        val typo2 = MaterialTheme.typography.h6.copy(color = MaterialTheme.colors.onBackground)
+        val typo1 = MaterialTheme.typography.subtitle2.copy(color = MaterialTheme.colors.onBackground)
+        val typo2 = MaterialTheme.typography.subtitle1.copy(color = MaterialTheme.colors.onBackground)
 
         Text(
             text = "Theme",
@@ -137,7 +136,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
                     modifier = Modifier
                         .padding(top = 10.dp, bottom = 10.dp, start = 12.dp, end = 12.dp),
                     text = "System",
-                    style = MaterialTheme.typography.subtitle1,
+                    style = MaterialTheme.typography.subtitle2,
                     color = systemThemeButtonForegroundColor.value,
                     textAlign = TextAlign.Center
                 )
@@ -161,7 +160,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
                     modifier = Modifier
                         .padding(top = 10.dp, bottom = 10.dp, start = 12.dp, end = 12.dp),
                     text = "Dark",
-                    style = MaterialTheme.typography.subtitle1,
+                    style = MaterialTheme.typography.subtitle2,
                     color = darkThemeButtonForegroundColor.value,
                     textAlign = TextAlign.Center
                 )
@@ -185,7 +184,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
                     modifier = Modifier
                         .padding(top = 10.dp, bottom = 10.dp, start = 12.dp, end = 12.dp),
                     text = "Light",
-                    style = MaterialTheme.typography.subtitle1,
+                    style = MaterialTheme.typography.subtitle2,
                     color = lightThemeButtonForegroundColor.value,
                     textAlign = TextAlign.Center
                 )

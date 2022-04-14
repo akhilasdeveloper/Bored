@@ -79,7 +79,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                         isCardSwipeTriedIsShowing.value = true
                 }
                 SelectionButton(
-                    text = "TODO",
+                    text = "Todo",
                     isSelected = viewModel.addSelected.value,
                     modifier = Modifier.weight(1f),
                     transparentValue = MaterialTheme.colors.background.copy(alpha = 0f)
@@ -117,8 +117,8 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                             viewModel.removeCompleted(card)
                         },
                         onSelected = {
-                            viewModel.onSelected(index, it)
                             viewModel.setIsCardSwipeTried()
+                            viewModel.onSelected(index, it)
                         },
                         onLoadCompleted = {
                             if (!viewModel.isCardTapTriedTried.value)
@@ -158,16 +158,16 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         title = "Tip",
         description = CARD_SWIPE_TRIED,
         rangeExpanded = isCardSwipeTriedIsShowing,
-        foregroundColor = MaterialTheme.colors.surface,
-        backgroundColor = MaterialTheme.colors.onSurface
+        foregroundColor = MaterialTheme.colors.onSurface,
+        backgroundColor = MaterialTheme.colors.surface
     ) {
     }
     DemoDialog(
         title = "Tip",
         description = CARD_TAP_TRIED,
         rangeExpanded = isCardTapTriedIsShowing,
-        foregroundColor = MaterialTheme.colors.surface,
-        backgroundColor = MaterialTheme.colors.onSurface
+        foregroundColor = MaterialTheme.colors.onSurface,
+        backgroundColor = MaterialTheme.colors.surface
     ) {
 
     }
@@ -176,8 +176,8 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
         title = "Terms",
         description = TERMS_DEMO,
         rangeExpanded = isTermsDemoIsShowing,
-        foregroundColor = MaterialTheme.colors.surface,
-        backgroundColor = MaterialTheme.colors.onSurface
+        foregroundColor = MaterialTheme.colors.onSurface,
+        backgroundColor = MaterialTheme.colors.surface
     ) {
         viewModel.setIsTermsDemoIsShowing()
     }
@@ -193,8 +193,8 @@ fun SelectionButton(
     alignTextCenter: Boolean = false,
     onClicked: () -> Unit
 ) {
-    val fontSizeFrom = MaterialTheme.typography.h6.fontSize.value.toInt()
-    val fontSizeTo = MaterialTheme.typography.h4.fontSize.value.toInt()
+    val fontSizeFrom = MaterialTheme.typography.subtitle1.fontSize.value.toInt()
+    val fontSizeTo = MaterialTheme.typography.h6.fontSize.value.toInt()
     var fontSize by remember { mutableStateOf(fontSizeFrom) }
     val animFontSize by animateIntAsState(targetValue = fontSize)
     val animSelectionColor by animateColorAsState(targetValue = if (isSelected) MaterialTheme.colors.primary else transparentValue)
@@ -228,7 +228,7 @@ fun SelectionButton(
                 Text(
                     modifier = Modifier.padding(20.dp),
                     text = text,
-                    style = MaterialTheme.typography.h6.copy(fontSize = animFontSize.sp),
+                    style = MaterialTheme.typography.subtitle1.copy(fontSize = animFontSize.sp),
                     color = MaterialTheme.colors.onBackground
                 )
             }
@@ -430,7 +430,7 @@ fun CardView(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
-                            style = MaterialTheme.typography.h6,
+                            style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp),
                             color = MaterialTheme.colors.onPrimary,
                             textAlign = TextAlign.Center
                         )
@@ -473,7 +473,8 @@ fun HideableSubTitleText(
                 modifier = modifier,
                 text = text,
                 style = MaterialTheme.typography.subtitle1,
-                color = MaterialTheme.colors.onSurface
+                color = MaterialTheme.colors.onSurface,
+                textAlign = TextAlign.Center
             )
         }
     }

@@ -6,6 +6,21 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.akhilasdeveloper.bored.R
 
+val NotoSansRegularFontFamily = FontFamily(
+
+    fonts = listOf(
+        Font(
+            resId = R.font.noto_sans_regular,
+            style = FontStyle.Normal
+        ),
+        Font(
+            resId = R.font.noto_sans_bold,
+            style = FontStyle.Normal,
+            weight = FontWeight.W700
+        )
+    )
+)
+
 val NunitoFontFamily = FontFamily(
 
     fonts = listOf(

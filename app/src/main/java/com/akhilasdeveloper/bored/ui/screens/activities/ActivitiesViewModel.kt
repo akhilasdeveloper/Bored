@@ -8,7 +8,9 @@ import com.akhilasdeveloper.bored.data.CardDao
 import com.akhilasdeveloper.bored.data.mapper.BoredTableMapper
 import com.akhilasdeveloper.bored.repositories.BoredApiRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +29,7 @@ class ActivitiesViewModel
         it.map { table ->
             BoredTableMapper().fromSourceToDestination(table)
         }
-    }
+    }.flowOn((Dispatchers.IO))
 
     val activitiesAdded: Flow<PagingData<CardDao>> = Pager(PagingConfig(pageSize = 6)) {
         boredApiRepository.fetchAddActivities()
@@ -35,7 +37,7 @@ class ActivitiesViewModel
         it.map { table ->
             BoredTableMapper().fromSourceToDestination(table)
         }
-    }
+    }.flowOn((Dispatchers.IO))
 
     fun updateIsCompleted(id:Int?, key:String, isCompleted:Boolean){
         viewModelScope.launch {

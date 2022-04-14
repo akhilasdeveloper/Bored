@@ -7,8 +7,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.akhilasdeveloper.bored.data.CategoryValueData
 import com.akhilasdeveloper.bored.data.mapper.ThemeValueMapper
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
-
 class DemoFunctions
 @Inject constructor(private val dataStore: DataStoreFunctionsImpl) {
 
@@ -19,11 +19,14 @@ class DemoFunctions
     private val IS_TERMS_DEMO_SHOWN = booleanPreferencesKey("IS_TERMS_DEMO_SHOWN")
 
     suspend fun setCardSwipeTriedValue(value: Boolean) {
+        Timber.d("Card Swipe : setCardSwipeTriedValue $value")
         dataStore.saveValueToPreferencesStore(IS_CARD_SWIPE_TRIED, value)
     }
-    suspend fun getCardSwipeTriedValue() =
-        dataStore.getValueFromPreferencesStore(IS_CARD_SWIPE_TRIED)?: false
-
+    suspend fun getCardSwipeTriedValue():Boolean {
+        val data = dataStore.getValueFromPreferencesStore(IS_CARD_SWIPE_TRIED) ?: false
+        Timber.d("Card Swipe : getCardSwipeTriedValue $data")
+        return data
+    }
 
     suspend fun setCardTapTriedValue(value: Boolean) {
         dataStore.saveValueToPreferencesStore(IS_CARD_TAP_TRIED, value)
@@ -45,5 +48,6 @@ class DemoFunctions
     suspend fun getTermsDemoShownValue() =
         dataStore.getValueFromPreferencesStore(IS_TERMS_DEMO_SHOWN)?: false
 }
+
 
 

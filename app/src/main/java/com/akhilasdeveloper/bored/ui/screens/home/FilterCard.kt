@@ -7,7 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.SliderDefaults.TickAlpha
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Accessibility
+import androidx.compose.material.icons.rounded.AccessibilityNew
 import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material.icons.rounded.Tag
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -200,19 +203,24 @@ fun MainFilterContents(
                                 tint = MaterialTheme.colors.onPrimary,
                                 modifier = Modifier
                                     .padding(
-                                        top = 8.dp,
-                                        bottom = 8.dp,
-                                        start = 8.dp
+                                        top = 2.dp,
+                                        bottom = 2.dp,
+                                        start = 2.dp
                                     )
                                     .clip(RoundedCornerShape(100.dp))
                                     .background(color = categoryTheme.value)
-                                    .padding(5.dp)
+                                    .padding(4.dp)
                             )
 
                             Text(
-                                modifier = Modifier.padding(8.dp),
+                                modifier = Modifier.padding(
+                                    top = 4.dp,
+                                    bottom = 4.dp,
+                                    start = 12.dp,
+                                    end = 4.dp
+                                ),
                                 text = category.title,
-                                style = MaterialTheme.typography.subtitle1,
+                                style = MaterialTheme.typography.subtitle2,
                                 color = foregroundColor
                             )
 
@@ -248,7 +256,7 @@ fun MainFilterContents(
                         }) {
 
                         Text(
-                            modifier = Modifier.padding(8.dp),
+                            modifier = Modifier.padding(4.dp),
                             text = "$it",
                             style = MaterialTheme.typography.subtitle1,
                             color = foregroundColor
@@ -349,17 +357,27 @@ fun SliderDialog(
     ContentDialog(
         title = title,
         widthFactor = .7f,
+        titleIcon = Icons.Rounded.Tag,
         onOk = {
             onOk(rangeSlider.value)
         }, content = {
             Column(Modifier.padding(top = 12.dp)) {
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = "From ${(rangeSlider.value.start * 100).roundToInt()} To ${(rangeSlider.value.endInclusive * 100).roundToInt()}%",
-                    style = MaterialTheme.typography.subtitle1,
-                    color = foregroundColor
-                )
-                Box(Modifier.padding(12.dp)) {
+                Row(Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        text = "${(rangeSlider.value.start * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.subtitle1,
+                        color = foregroundColor
+                    )
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        text = "${(rangeSlider.value.endInclusive * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.subtitle1,
+                        color = foregroundColor
+                    )
+                }
+                Box(Modifier.padding(start = 12.dp, end = 12.dp)) {
                     RangeSlider(
                         steps = 100,
                         values = rangeSlider.value,
@@ -440,7 +458,7 @@ fun ContentDialog(
 ) {
 
     val currentContent by rememberUpdatedState(content)
-    val titlePadding = derivedStateOf { if (titleIcon == null) 18.dp else 10.dp }
+    val titlePadding = derivedStateOf { if (titleIcon == null) 22.dp else 10.dp }
     val scrollState = rememberScrollState()
 
     if (isExpanded.value) {
@@ -459,11 +477,12 @@ fun ContentDialog(
                 color = backgroundColor
             ) {
                 Column(
-                    Modifier.verticalScroll(scrollState)
+                    Modifier.verticalScroll(scrollState),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
                         Modifier
-                            .background(MaterialTheme.colors.primary)
+                            .background(backgroundColor)
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -473,7 +492,7 @@ fun ContentDialog(
                                 contentDescription = "Category Icon",
                                 tint = MaterialTheme.colors.onPrimary,
                                 modifier = Modifier
-                                    .padding(top = 12.dp, bottom = 12.dp, start = 10.dp)
+                                    .padding(top = 22.dp, bottom = 12.dp, start = 22.dp)
                                     .clip(RoundedCornerShape(100.dp))
                                     .background(color = MaterialTheme.colors.primary)
                                     .padding(5.dp)
@@ -487,30 +506,27 @@ fun ContentDialog(
                             ),
                             text = title,
                             style = MaterialTheme.typography.subtitle1,
-                            color = MaterialTheme.colors.onPrimary
+                            color = MaterialTheme.colors.onSurface
                         )
                     }
-                    Box(Modifier.padding(12.dp)) {
+                    Box(Modifier.padding(start = 24.dp, end = 24.dp, top = 5.dp)) {
                         currentContent?.invoke()
                     }
-                    Row(
-                        Modifier
-                            .background(MaterialTheme.colors.primary)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier
+                            .clickable(indication = rememberRipple(color = MaterialTheme.colors.primary),
+                                interactionSource = remember { MutableInteractionSource() }) {
+                                onOk?.invoke()
+                                isExpanded.value = false
+                            }
+                            .fillMaxWidth()
+                            .padding(20.dp)
                     ) {
                         Text(
-                            modifier = Modifier
-                                .clickable(indication = rememberRipple(color = MaterialTheme.colors.onPrimary),
-                                    interactionSource = remember { MutableInteractionSource() }) {
-                                    onOk?.invoke()
-                                    isExpanded.value = false
-                                }
-                                .fillMaxWidth()
-                                .padding(12.dp),
                             text = "OK",
                             style = MaterialTheme.typography.subtitle1,
-                            color = MaterialTheme.colors.onPrimary,
+                            color = MaterialTheme.colors.onSurface,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -539,6 +555,16 @@ fun FilterItem(
 
     Row(
         modifier = Modifier
+            .let {
+                return@let if (!isDisabled && onClicked != null) {
+                    it.clickable(
+                        indication = rememberRipple(color = foregroundColor),
+                        interactionSource = remember { MutableInteractionSource() },
+                    ) {
+                        onClicked.invoke()
+                    }
+                } else it
+            }
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -555,22 +581,12 @@ fun FilterItem(
             ),
             modifier = Modifier
                 .padding(
-                    top = 8.dp,
-                    bottom = 8.dp
+                    top = 1.dp,
+                    bottom = 1.dp
                 ),
         )
         Row(
             Modifier
-                .let {
-                    return@let if (!isDisabled && onClicked != null) {
-                        it.clickable(
-                            indication = rememberRipple(color = foregroundColor),
-                            interactionSource = remember { MutableInteractionSource() },
-                        ) {
-                            onClicked.invoke()
-                        }
-                    } else it
-                }
                 .fillMaxWidth()
                 .weight(1f),
             verticalAlignment = Alignment.CenterVertically,
@@ -579,7 +595,7 @@ fun FilterItem(
 
             Text(
                 text = text,
-                style = MaterialTheme.typography.subtitle1,
+                style = MaterialTheme.typography.subtitle2,
                 color = foregroundColor.copy(alpha = disabledAlpha.value),
                 textAlign = TextAlign.Center
             )
@@ -589,10 +605,10 @@ fun FilterItem(
 
                     Text(
                         modifier = Modifier
-                            .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
+                            .padding(end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
                             .background(MaterialTheme.colors.onSurface.copy(alpha = .1f))
-                            .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp),
+                            .padding(start = 10.dp, end = 10.dp),
                         text = value,
                         style = MaterialTheme.typography.subtitle2,
                         color = MaterialTheme.colors.onSurface.copy(alpha = disabledAlpha.value),
@@ -606,10 +622,10 @@ fun FilterItem(
                         contentDescription = "Category Icon",
                         tint = MaterialTheme.colors.onPrimary.copy(alpha = disabledAlpha.value),
                         modifier = Modifier
-                            .padding(top = 8.dp, bottom = 8.dp, end = 10.dp)
+                            .padding(end = 10.dp)
                             .clip(RoundedCornerShape(100.dp))
                             .background(color = iconColor.copy(alpha = disabledAlpha.value))
-                            .padding(5.dp)
+                            .padding(4.dp),
                     )
                 }
                 attachComposable?.invoke()

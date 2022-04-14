@@ -19,6 +19,7 @@ import com.akhilasdeveloper.bored.util.DemoFunctions
 import com.akhilasdeveloper.bored.util.FilterCardFunctions
 import com.akhilasdeveloper.bored.util.ThemeFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -58,7 +59,7 @@ class HomeViewModel
     fun getRandomActivity() {
         if (cardLoadCompletedState && cards.isEmpty()) {
             setCardLoadingCompletedState(false)
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 boredApiRepository.getRandomActivity()
                     .onEach { response ->
                         when (response) {
@@ -193,10 +194,9 @@ class HomeViewModel
         }
 
     fun setIsCardSwipeTried() {
-        if (!_isCardSwipeTried.value)
-            viewModelScope.launch {
-                demoFunctions.setCardSwipeTriedValue(true)
-            }
+        viewModelScope.launch {
+            demoFunctions.setCardSwipeTriedValue(true)
+        }
     }
 
     val isCardTapTriedTried: State<Boolean>
@@ -232,7 +232,8 @@ class HomeViewModel
     val isActivityCardSwipeTriedIsShowing: State<Boolean>
         get() {
             viewModelScope.launch {
-                _isActivityCardSwipeTriedIsShowing.value = demoFunctions.getActivityCardSwipeTriedValue()
+                _isActivityCardSwipeTriedIsShowing.value =
+                    demoFunctions.getActivityCardSwipeTriedValue()
             }
             return _isActivityCardSwipeTriedIsShowing
         }
