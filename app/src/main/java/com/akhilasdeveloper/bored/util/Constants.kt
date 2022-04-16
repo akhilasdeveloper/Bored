@@ -1,6 +1,8 @@
 package com.akhilasdeveloper.bored.util
 
 object Constants {
+    const val URL = "https://www.boredapi.com/"
+    const val MAIL_ID = "akhilasdeveloper@gamil.com"
     const val BASE_URL = "https://www.boredapi.com/api/"
 
     const val PASS_SELECTION = 2

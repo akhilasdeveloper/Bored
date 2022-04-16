@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,6 +32,8 @@ import com.akhilasdeveloper.bored.ui.theme.accentColor
 import com.akhilasdeveloper.bored.R
 import com.akhilasdeveloper.bored.data.mapper.ThemeValueMapper
 import com.akhilasdeveloper.bored.ui.theme.onAccentColor
+import com.akhilasdeveloper.bored.util.Constants.MAIL_ID
+import com.akhilasdeveloper.bored.util.Constants.URL
 
 @Preview(showBackground = true)
 @Composable
@@ -330,6 +333,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
             style = MaterialTheme.typography.subtitle1,
             color = MaterialTheme.colors.onBackground
         )
+        val uriHandler = LocalUriHandler.current
 
         Column(
             Modifier
@@ -338,7 +342,13 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
         ) {
 
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.clickable(
+                    indication = rememberRipple(color = MaterialTheme.colors.onSurface),
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = {
+                        uriHandler.openUri("mailto:$MAIL_ID")
+                    }
+                ).fillMaxWidth(),
                 text =
                 buildAnnotatedString {
                     withStyle(
@@ -349,7 +359,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
                         ) {
                             append("Email : ")
                         }
-                        append("akhilasdeveloper@gamil.com")
+                        append(MAIL_ID)
                     }
                 }
             )
@@ -365,6 +375,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
             color = MaterialTheme.colors.onBackground
         )
 
+
         Column(
             Modifier
                 .fillMaxWidth()
@@ -372,7 +383,13 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
         ) {
 
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.clickable(
+                    indication = rememberRipple(color = MaterialTheme.colors.onSurface),
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = {
+                        uriHandler.openUri(URL)
+                    }
+                ).fillMaxWidth(),
                 text =
                 buildAnnotatedString {
                     withStyle(
@@ -383,7 +400,7 @@ fun AboutScreen(viewModel: HomeViewModel = viewModel()) {
                         ) {
                             append("Site : ")
                         }
-                        append("https://www.boredapi.com")
+                        append(URL)
                     }
                 }
             )

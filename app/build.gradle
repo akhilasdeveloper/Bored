@@ -3,6 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -32,7 +34,7 @@ android {
                     'proguard-rules-gson.pro'
         }
         debug {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
                     'proguard-rules.pro',
                     'proguard-rules-okhttp3.pro',
@@ -74,9 +76,9 @@ dependencies {
     def icons_version = "1.1.1"
     def paging_version = "3.1.1"
     def paging_compose_version = "1.0.0-alpha14"
-    def compose_recordable_version = "0.7.4"
     def data_store_version = "1.0.0"
-    def kotlin_reflection_version = "1.6.10"
+    def firebase_crashlytics_version = "18.2.9"
+    def firebase_analytics_version = "20.1.2"
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.1'
@@ -130,12 +132,10 @@ dependencies {
     //Extra Icons from Google
     implementation "androidx.compose.material:material-icons-extended:$icons_version"
 
-    //Library to reorder LazyList
-    implementation "org.burnoutcrew.composereorderable:reorderable:$compose_recordable_version"
-
     //DataStore
     implementation "androidx.datastore:datastore-preferences:$data_store_version"
 
-    //Kotlin Reflection functions
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_reflection_version"
+    //Firebase
+    implementation "com.google.firebase:firebase-crashlytics:$firebase_crashlytics_version"
+    implementation "com.google.firebase:firebase-analytics:$firebase_analytics_version"
 }

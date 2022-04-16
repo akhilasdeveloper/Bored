@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.Bored" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">#222222</item>
-        <item name="android:navigationBarColor">#FFC2185B</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/splash</item>
+        <item name="android:navigationBarColor">@color/splash</item>
 
         <!-- Customize your theme here. -->
         <item name="android:windowTranslucentNavigation">false</item>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "61432399325",
+    "project_id": "bored-8fe6f",
+    "storage_bucket": "bored-8fe6f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61432399325:android:4a389277e8a029261b2234",
+        "android_client_info": {
+          "package_name": "com.akhilasdeveloper.bored"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "61432399325-p01nftfeoelshvoest7uitnp4ovaa826.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZ7ot13OPU2HX7AO8oeW85fVYZhBBmmGI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "61432399325-p01nftfeoelshvoest7uitnp4ovaa826.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

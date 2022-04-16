@@ -11,8 +11,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import retrofit2.http.Query
 import timber.log.Timber
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 class BoredApiRepository
@@ -73,33 +75,39 @@ class BoredApiRepository
         maxaccessibility: Float? = null
     ) = flow {
         emit(ApiResponse.Loading<BoredApiResponse>())
-        try {
-            val data = boredApiService.getRandomActivityByQuery(
-                type = type,
-                participants = participants,
-                minprice = minprice,
-                maxprice = maxprice,
-                minaccessibility = minaccessibility,
-                maxaccessibility = maxaccessibility
-            )
 
-            Timber.d("Response : $data")
+        val response = withTimeoutOrNull(10000L){
 
-            if (data == null){
-                emit(ApiResponse.Error(message = "Response Broken", data = null))
-            }else{
+            try {
+                val data = boredApiService.getRandomActivityByQuery(
+                    type = type,
+                    participants = participants,
+                    minprice = minprice,
+                    maxprice = maxprice,
+                    minaccessibility = minaccessibility,
+                    maxaccessibility = maxaccessibility
+                )
 
-                if (data.error == null)
-                    emit(ApiResponse.Success(data = data))
-                else
-                    emit(ApiResponse.Error(message = data.error, data = null))
+                if (data == null){
+                    return@withTimeoutOrNull ApiResponse.Error(message = "Response Broken", data = null)
+                }else{
+                    if (data.error == null)
+                        return@withTimeoutOrNull ApiResponse.Success(data = data)
+                    else
+                        return@withTimeoutOrNull ApiResponse.Error(message = data.error, data = null)
+                }
 
+            }catch (e: UnknownHostException){
+                Timber.e("getRandomActivity UnknownHostException Occurred : ${e.toString()}")
+                return@withTimeoutOrNull ApiResponse.Error(message = "Please check the network connection", data = null)
             }
+            catch (e: Exception) {
+                Timber.e("getRandomActivity Exception Occurred : ${e.toString()}")
+                return@withTimeoutOrNull ApiResponse.Error(message = "Unable to fetch the Activity.", data = null)
+            }
+        }?:ApiResponse.Error(message = "Network timed out.", data = null)
 
-        } catch (e: Exception) {
-//            emit(ApiResponse.Error(message = "Exception Occurred : ${e.toString()}", data = null))
-            Timber.e("getRandomActivity Exception Occurred : ${e.toString()}")
-        }
+        emit(response)
 
     }
 
